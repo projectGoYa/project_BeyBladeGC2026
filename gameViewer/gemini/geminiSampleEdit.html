@@ -39,13 +39,13 @@
             transform: scale(0.9);
             transition: all 0.2s ease-out;
         }
-        /* メニューのフェードイン */
+        /* メニューのフェードイン（下からスライドアップ） */
         .menu-enter {
-            animation: fadeIn 0.1s ease-out;
+            animation: slideUp 0.3s ease-out;
         }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-5px); }
-            to { opacity: 1; transform: translateY(0); }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translate(-50%, 20px); }
+            to { opacity: 1; transform: translate(-50%, 0); }
         }
         /* 複数選択時のスタイル */
         .selected-card {
@@ -61,7 +61,7 @@
         }
     </style>
 </head>
-<body class="bg-slate-100 min-h-screen p-4 md:p-8">
+<body class="bg-slate-100 min-h-screen p-4 md:p-8 pb-32">
 
     <div class="max-w-6xl mx-auto">
         <header class="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
@@ -138,12 +138,16 @@
     </div>
 
     <!-- コンテキストメニューのテンプレート -->
-    <div id="move-menu" class="hidden fixed z-50 bg-white shadow-xl border border-slate-200 rounded-lg w-48 py-2 menu-enter">
-        <p id="menu-title" class="px-4 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">移動先を選択</p>
-        <button onclick="moveSelectedCards('todo-list')" id="menu-to-todo" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 transition-colors">次呼ぼうとしている人へ移動</button>
-        <button onclick="moveSelectedCards('ready-list')" id="menu-to-doing" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 transition-colors">呼ばれるかもへ移動</button>
-        <button onclick="moveSelectedCards('stadiumA-list')" id="menu-to-done" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 transition-colors">スタジアムAへ移動</button>
-        <button onclick="moveSelectedCards('done-list')" id="menu-to-done" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 transition-colors">再度呼び出しへ移動</button>
+    <div id="move-menu" class="hidden fixed bottom-10 left-1/2 -translate-x-1/2 z-50 bg-white shadow-2xl border border-slate-200 rounded-2xl w-[90%] max-w-lg p-2 menu-enter flex flex-col sm:flex-row items-center gap-2">
+        <div class="px-4 py-2 text-sm font-bold text-blue-600 bg-blue-50 rounded-xl whitespace-nowrap">
+            <span id="menu-title-count">0</span>件を選択中
+        </div>
+        <div class="flex flex-wrap justify-center gap-2 w-full">
+            <button onclick="moveSelectedCards('todo-list')" class="flex-grow px-4 py-2.5 text-sm font-medium text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors border border-slate-200">次呼ぼうとしている人</button>
+            <button onclick="moveSelectedCards('ready-list')" class="flex-grow px-4 py-2.5 text-sm font-medium text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors border border-slate-200">呼ばれるかも</button>
+            <button onclick="moveSelectedCards('stadiumA-list')" class="flex-grow px-4 py-2.5 text-sm font-medium text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors border border-slate-200">スタジアムA</button>
+            <button onclick="moveSelectedCards('done-list')" class="flex-grow px-4 py-2.5 text-sm font-medium text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors border border-slate-200">再度呼び出し</button>
+        </div>
     </div>
 
     <script>
@@ -180,22 +184,17 @@
 
             // 右クリックのような動作でメニューを表示（1枚以上選択されている時）
             if (selectedCards.length > 0) {
-                showMoveMenu(event);
+                showMoveMenu();
             } else {
                 closeMenu();
             }
         }
 
         // 移動メニューの表示
-        function showMoveMenu(event) {
+        function showMoveMenu() {
             const menu = document.getElementById('move-menu');
-            const menuTitle = document.getElementById('menu-title');
-            
-            menuTitle.innerText = `${selectedCards.length}件を移動先へ`;
-
-            // 表示位置の計算
-            menu.style.left = `${event.clientX}px`;
-            menu.style.top = `${event.clientY}px`;
+            const countLabel = document.getElementById('menu-title-count');
+            countLabel.innerText = selectedCards.length;
             menu.classList.remove('hidden');
         }
 
@@ -268,6 +267,7 @@
                 // アニメーション用のクラスを追加
                 card.classList.add('fade-out');
                 selectedCards = selectedCards.filter(c => c !== card);
+                if (selectedCards.length === 0) closeMenu();
                 
                 // アニメーション完了後に要素を削除
                 setTimeout(() => {
