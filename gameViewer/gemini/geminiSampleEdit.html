@@ -16,6 +16,24 @@
         .sortable-drag {
             cursor: grabbing;
         }
+        /* 削除ボタンのスタイルとアニメーション */
+        .delete-btn {
+            background-color: #f1f5f9;
+            color: #64748b;
+            border: 1px solid #e2e8f0;
+        }
+        .delete-btn:hover {
+            background-color: #475569;
+            color: white;
+            border-color: #475569;
+            transform: scale(1.1);
+        }
+        /* 削除時のフェードアウトアニメーション */
+        .fade-out {
+            opacity: 0;
+            transform: scale(0.9);
+            transition: all 0.2s ease-out;
+        }
     </style>
 </head>
 <body class="bg-slate-100 min-h-screen p-4 md:p-8">
@@ -37,7 +55,12 @@
                 </div>
                 <!-- ドラッグ可能領域 -->
                 <div id="todo-list" class="kanban-list flex-grow flex flex-col gap-3 p-1">
-                    <div class="bg-white p-4 rounded-lg shadow-sm border border-slate-300 cursor-grab active:cursor-grabbing">
+                    <div class="bg-white p-4 rounded-lg shadow-sm border border-slate-300 cursor-grab active:cursor-grabbing relative transition-all">
+                        <button onclick="removeCard(this)" title="選手削除" class="absolute top-2 right-2 p-1.5 delete-btn rounded-full transition-all shadow-sm">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                        </button>                        
                         <p class="text-slate-800 font-medium">000</p>
                     </div>
                 </div>
@@ -106,10 +129,34 @@
 
             const list = document.getElementById(listId);
             const card = document.createElement('div');
-            card.className = "bg-white p-4 rounded-lg shadow-sm border border-slate-300 cursor-grab active:cursor-grabbing";
-            card.innerHTML = `<p class="text-slate-800 font-medium">${taskText}</p>`;
+            card.className = "bg-white p-4 rounded-lg shadow-sm border border-slate-300 cursor-grab active:cursor-grabbing relative transition-all";
+            card.innerHTML = `
+                <button onclick="removeCard(this)" title="選手削除" class="absolute top-2 right-2 p-1.5 delete-btn rounded-full transition-all shadow-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                </button>
+                <p class="text-slate-800 font-medium pr-10">${taskText}</p>
+            `;
             
             list.appendChild(card);
+        }
+
+        // カードを削除する機能
+        function removeCard(buttonElement) {
+            const card = buttonElement.parentElement;
+            
+            // 確認ダイアログ
+            if (confirm("この選手を削除しますか？")) {
+                // アニメーション用のクラスを追加
+                card.classList.add('fade-out');
+                
+                // アニメーション完了後に要素を削除
+                setTimeout(() => {
+                    card.remove();
+                    updateCounts();
+                }, 200);
+            }
         }
     </script>
 </body>
