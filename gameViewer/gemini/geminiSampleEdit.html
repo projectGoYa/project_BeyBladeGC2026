@@ -143,10 +143,10 @@
             <span id="menu-title-count">0</span>件を選択中
         </div>
         <div class="flex flex-wrap justify-center gap-2 w-full">
-            <button onclick="moveSelectedCards('todo-list')" class="flex-grow px-4 py-2.5 text-sm font-medium text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors border border-slate-200">次呼ぼうとしている人</button>
-            <button onclick="moveSelectedCards('ready-list')" class="flex-grow px-4 py-2.5 text-sm font-medium text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors border border-slate-200">呼ばれるかも</button>
-            <button onclick="moveSelectedCards('stadiumA-list')" class="flex-grow px-4 py-2.5 text-sm font-medium text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors border border-slate-200">スタジアムA</button>
-            <button onclick="moveSelectedCards('done-list')" class="flex-grow px-4 py-2.5 text-sm font-medium text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors border border-slate-200">再度呼び出し</button>
+            <button id="btn-todo-list" onclick="moveSelectedCards('todo-list')" class="flex-grow px-4 py-2.5 text-sm font-medium text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors border border-slate-200">次呼ぼうとしている人</button>
+            <button id="btn-ready-list" onclick="moveSelectedCards('ready-list')" class="flex-grow px-4 py-2.5 text-sm font-medium text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors border border-slate-200">呼ばれるかも</button>
+            <button id="btn-stadiumA-list" onclick="moveSelectedCards('stadiumA-list')" class="flex-grow px-4 py-2.5 text-sm font-medium text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors border border-slate-200">スタジアムA</button>
+            <button id="btn-done-list" onclick="moveSelectedCards('done-list')" class="flex-grow px-4 py-2.5 text-sm font-medium text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors border border-slate-200">再度呼び出し</button>
         </div>
     </div>
 
@@ -226,11 +226,25 @@
             }
         }
 
-        // 移動メニューの表示
+        // 移動メニューの表示とボタンの制御
         function showMoveMenu() {
             const menu = document.getElementById('move-menu');
             const countLabel = document.getElementById('menu-title-count');
             countLabel.innerText = selectedCards.length;
+
+            // 全ての選択中のカードが所属しているリストを取得
+            const parentLists = new Set(selectedCards.map(card => card.parentElement.id));
+            
+            // 選択されているカードが「一種類」のリストのみに存在する場合、そのリストへの移動ボタンを隠す
+            lists.forEach(id => {
+                const btn = document.getElementById(`btn-${id}`);
+                if (parentLists.size === 1 && parentLists.has(id)) {
+                    btn.classList.add('hidden');
+                } else {
+                    btn.classList.remove('hidden');
+                }
+            });
+
             menu.classList.remove('hidden');
         }
 
