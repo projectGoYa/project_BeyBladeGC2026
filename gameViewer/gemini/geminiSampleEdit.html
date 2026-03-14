@@ -162,7 +162,41 @@
                 animation: 150,  // 移動時のアニメーション速度(ms)
                 ghostClass: 'sortable-ghost', // 移動中に表示されるプレースホルダーのクラス
                 dragClass: 'sortable-drag',   // ドラッグ中の要素のクラス
-                onEnd: function() {
+                onStart: function (evt) {
+                    // DOM上の出現順でソート（これが「元の並び順」の定義）
+                    selectedCards.sort((a, b) => {
+                        return a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1;
+                    });
+
+                    // ドラッグ要素が選択群に含まれる場合、他の要素を一時的に隠す
+                    if (evt.item.classList.contains('selected-card')) {
+                        selectedCards.forEach(card => {
+                            if (card !== evt.item) {
+                                card.style.display = 'none';
+                            }
+                        });
+                    }
+                },
+                onEnd: function (evt) {
+                    const targetList = evt.to;
+                    const draggedItem = evt.item;
+
+                    if (draggedItem.classList.contains('selected-card')) {
+                        // ドラッグされた要素がドロップされた時点でのインデックスを取得
+                        const children = Array.from(targetList.children);
+                        const dropIndex = children.indexOf(draggedItem);
+                        
+                        // 全ての選択されたカードを再表示
+                        selectedCards.forEach(card => card.style.display = '');
+
+                        // 元の並び順（selectedCardsの配列順）に従って、ドロップ位置に再挿入
+                        // 配列の逆順から挿入することで、dropIndexの位置に正しく順番に並ぶようにする
+                        const reversedSelected = [...selectedCards].reverse();
+                        reversedSelected.forEach(card => {
+                            // targetList.children[dropIndex] の位置に順番に差し込む
+                            targetList.insertBefore(card, targetList.children[dropIndex]);
+                        });
+                    }
                 }
             });
         });
@@ -177,7 +211,9 @@
             
             // 選択リストの更新
             if (card.classList.contains('selected-card')) {
-                selectedCards.push(card);
+                if (!selectedCards.includes(card)) {
+                    selectedCards.push(card);
+                }
             } else {
                 selectedCards = selectedCards.filter(c => c !== card);
             }
@@ -199,10 +235,16 @@
         }
 
 
-        // 選択したすべてのカードを指定したリストに移動
+        // ボタン経由での移動
         function moveSelectedCards(targetListId) {
             if (selectedCards.length === 0) return;
             const targetList = document.getElementById(targetListId);
+
+            // 並び順を維持
+            selectedCards.sort((a, b) => {
+                return a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1;
+            });
+
             selectedCards.forEach(card => {
                 card.classList.remove('selected-card');
                 targetList.appendChild(card);
