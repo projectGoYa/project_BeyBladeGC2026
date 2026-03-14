@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Simple Kanban Board</title>
-    <!-- SortableJS CDN: ドラッグ&ドロップを簡単に実装するライブラリ -->
+    <!-- SortableJS CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -16,7 +16,7 @@
         .sortable-drag {
             cursor: grabbing;
         }
-        /* 削除ボタンのスタイルとアニメーション */
+        /* 削除ボタンのスタイル（落ち着いたグレー） */
         .delete-btn {
             background-color: #f1f5f9;
             color: #64748b;
@@ -38,6 +38,14 @@
             transform: scale(0.9);
             transition: all 0.2s ease-out;
         }
+        /* メニューのフェードイン */
+        .menu-enter {
+            animation: fadeIn 0.1s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 <body class="bg-slate-100 min-h-screen p-4 md:p-8">
@@ -45,7 +53,7 @@
     <div class="max-w-6xl mx-auto">
         <header class="mb-8">
             <h1 class="text-3xl font-bold text-slate-800">My Kanban Board</h1>
-            <p class="text-slate-600">カードをドラッグして進捗を管理しましょう</p>
+            <p class="text-slate-600">カードをクリック、またはドラッグして進捗を管理しましょう</p>
         </header>
 
         <!-- カンバンボード・コンテナ -->
@@ -62,8 +70,9 @@
                 </div>
                 <!-- ドラッグ可能領域 -->
                 <div id="todo-list" class="kanban-list flex-grow flex flex-col gap-3 p-1">
-                    <div class="bg-white p-4 rounded-lg shadow-sm border border-slate-300 cursor-grab active:cursor-grabbing relative transition-all">
-                        <button onclick="removeCard(this)" title="タスクを削除" class="absolute top-2 right-2 p-1.5 delete-btn rounded-full transition-all shadow-sm">
+                    <!-- 初期カード 1 -->
+                    <div class="bg-white p-4 rounded-lg shadow-sm border border-slate-300 cursor-pointer hover:border-slate-400 relative transition-all" onclick="showMoveMenu(event, this)">
+                        <button onclick="removeCard(event, this)" title="タスクを削除" class="absolute top-2 right-2 p-1.5 delete-btn rounded-full transition-all shadow-sm">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                             </svg>
@@ -71,14 +80,14 @@
                         <p class="text-slate-800 font-medium pr-10">ロゴデザイン案の作成</p>
                         <span class="text-xs text-slate-400 mt-2 block">期限: 10/20</span>
                     </div>
-                    <div class="bg-white p-4 rounded-lg shadow-sm border border-slate-300 cursor-grab active:cursor-grabbing relative transition-all">
-                        <button onclick="removeCard(this)" title="タスクを削除" class="absolute top-2 right-2 p-1.5 delete-btn rounded-full transition-all shadow-sm">
+                    <!-- 初期カード 2 (復活) -->
+                    <div class="bg-white p-4 rounded-lg shadow-sm border border-slate-300 cursor-pointer hover:border-slate-400 relative transition-all" onclick="showMoveMenu(event, this)">
+                        <button onclick="removeCard(event, this)" title="タスクを削除" class="absolute top-2 right-2 p-1.5 delete-btn rounded-full transition-all shadow-sm">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                             </svg>
                         </button>
-                        <p class="text-slate-800 font-medium pr-10">競合他社のリサーチ</p>
-                        <span class="text-xs text-slate-400 mt-2 block">優先度: 高</span>
+                        <p class="text-slate-800 font-medium pr-10">市場調査レポートの確認</p>
                     </div>
                 </div>
                 <!-- タスク追加ボタン -->
@@ -97,8 +106,8 @@
                     <span id="doing-count" class="text-xs bg-slate-300 px-2 py-1 rounded-full text-slate-600 font-medium">0</span>
                 </div>
                 <div id="doing-list" class="kanban-list flex-grow flex flex-col gap-3 p-1">
-                    <div class="bg-white p-4 rounded-lg shadow-sm border border-slate-300 cursor-grab active:cursor-grabbing relative transition-all">
-                        <button onclick="removeCard(this)" title="タスクを削除" class="absolute top-2 right-2 p-1.5 delete-btn rounded-full transition-all shadow-sm">
+                    <div class="bg-white p-4 rounded-lg shadow-sm border border-slate-300 cursor-pointer hover:border-slate-400 relative transition-all" onclick="showMoveMenu(event, this)">
+                        <button onclick="removeCard(event, this)" title="タスクを削除" class="absolute top-2 right-2 p-1.5 delete-btn rounded-full transition-all shadow-sm">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                             </svg>
@@ -121,8 +130,8 @@
                     <span id="done-count" class="text-xs bg-slate-300 px-2 py-1 rounded-full text-slate-600 font-medium">0</span>
                 </div>
                 <div id="done-list" class="kanban-list flex-grow flex flex-col gap-3 p-1">
-                    <div class="bg-white p-4 rounded-lg shadow-sm border border-slate-300 opacity-75 line-through cursor-grab active:cursor-grabbing relative transition-all">
-                        <button onclick="removeCard(this)" title="タスクを削除" class="absolute top-2 right-2 p-1.5 delete-btn rounded-full transition-all shadow-sm">
+                    <div class="bg-white p-4 rounded-lg shadow-sm border border-slate-300 opacity-75 line-through cursor-pointer hover:border-slate-400 relative transition-all" onclick="showMoveMenu(event, this)">
+                        <button onclick="removeCard(event, this)" title="タスクを削除" class="absolute top-2 right-2 p-1.5 delete-btn rounded-full transition-all shadow-sm">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                             </svg>
@@ -134,26 +143,74 @@
                     + タスクを追加
                 </button>
             </div>
-
         </div>
     </div>
 
+    <!-- コンテキストメニューのテンプレート -->
+    <div id="move-menu" class="hidden fixed z-50 bg-white shadow-xl border border-slate-200 rounded-lg w-48 py-2 menu-enter">
+        <p class="px-4 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">移動先を選択</p>
+        <button onclick="moveCurrentCard('todo-list')" id="menu-to-todo" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 transition-colors">未着手へ移動</button>
+        <button onclick="moveCurrentCard('doing-list')" id="menu-to-doing" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 transition-colors">進行中へ移動</button>
+        <button onclick="moveCurrentCard('done-list')" id="menu-to-done" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 transition-colors">完了へ移動</button>
+    </div>
+
     <script>
-        // Sortableの初期化
         const lists = ['todo-list', 'doing-list', 'done-list'];
-        
+        let selectedCard = null;
+
+        // Sortableの初期化
         lists.forEach(id => {
             const el = document.getElementById(id);
             new Sortable(el, {
-                group: 'kanban', // 同じグループ名にすることでカラム間の移動を許可
-                animation: 150,  // 移動時のアニメーション速度(ms)
-                ghostClass: 'sortable-ghost', // 移動中に表示されるプレースホルダーのクラス
-                dragClass: 'sortable-drag',   // ドラッグ中の要素のクラス
+                group: 'kanban',
+                animation: 150,
+                ghostClass: 'sortable-ghost',
+                dragClass: 'sortable-drag',
                 onEnd: function() {
-                    updateCounts(); // 移動が終わるたびに件数を更新
+                    updateCounts();
                 }
             });
         });
+
+        // 移動メニューの表示
+        function showMoveMenu(event, card) {
+            // 子要素（削除ボタン）がクリックされた場合はメニューを出さない
+            if (event.target.closest('button')) return;
+
+            event.stopPropagation();
+            selectedCard = card;
+            const menu = document.getElementById('move-menu');
+            const currentListId = card.parentElement.id;
+
+            // 現在のカラムをメニューから隠す
+            document.getElementById('menu-to-todo').classList.toggle('hidden', currentListId === 'todo-list');
+            document.getElementById('menu-to-doing').classList.toggle('hidden', currentListId === 'doing-list');
+            document.getElementById('menu-to-done').classList.toggle('hidden', currentListId === 'done-list');
+
+            // 表示位置の計算
+            menu.style.left = `${event.clientX}px`;
+            menu.style.top = `${event.clientY}px`;
+            menu.classList.remove('hidden');
+        }
+
+        // 指定したリストにカードを移動
+        function moveCurrentCard(targetListId) {
+            if (!selectedCard) return;
+            const targetList = document.getElementById(targetListId);
+            targetList.appendChild(selectedCard);
+            
+            closeMenu();
+            updateCounts();
+        }
+
+        // メニューを閉じる
+        function closeMenu() {
+            document.getElementById('move-menu').classList.add('hidden');
+            selectedCard = null;
+        }
+
+        // メニュー外クリックで閉じる
+        window.addEventListener('click', closeMenu);
 
         // 簡易的なタスク追加機能
         function addTask(listId) {
@@ -162,9 +219,10 @@
 
             const list = document.getElementById(listId);
             const card = document.createElement('div');
-            card.className = "bg-white p-4 rounded-lg shadow-sm border border-slate-300 cursor-grab active:cursor-grabbing relative transition-all";
+            card.className = "bg-white p-4 rounded-lg shadow-sm border border-slate-300 cursor-pointer hover:border-slate-400 relative transition-all";
+            card.onclick = (e) => showMoveMenu(e, card);
             card.innerHTML = `
-                <button onclick="removeCard(this)" title="タスクを削除" class="absolute top-2 right-2 p-1.5 delete-btn rounded-full transition-all shadow-sm">
+                <button onclick="removeCard(event, this)" title="タスクを削除" class="absolute top-2 right-2 p-1.5 delete-btn rounded-full transition-all shadow-sm">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                     </svg>
@@ -176,16 +234,12 @@
             updateCounts();
         }
 
-        // カードを削除する機能
-        function removeCard(buttonElement) {
+        // カードを削除する機能（event.stopPropagation()を追加してメニュー発火を防ぐ）
+        function removeCard(event, buttonElement) {
+            event.stopPropagation();
             const card = buttonElement.parentElement;
-            
-            // 確認ダイアログ
             if (confirm("このタスクを削除しますか？")) {
-                // アニメーション用のクラスを追加
                 card.classList.add('fade-out');
-                
-                // アニメーション完了後に要素を削除
                 setTimeout(() => {
                     card.remove();
                     updateCounts();
@@ -193,16 +247,17 @@
             }
         }
 
-        // 各カラムのタスク件数を更新
         function updateCounts() {
             lists.forEach(id => {
-                const count = document.getElementById(id).children.length;
+                const listEl = document.getElementById(id);
+                if (!listEl) return;
+                const count = listEl.children.length;
                 const baseId = id.split('-')[0];
-                document.getElementById(`${baseId}-count`).innerText = count;
+                const countEl = document.getElementById(`${baseId}-count`);
+                if (countEl) countEl.innerText = count;
             });
         }
 
-        // 初期表示時にも件数を計算
         window.onload = updateCounts;
     </script>
 </body>
