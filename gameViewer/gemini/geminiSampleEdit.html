@@ -28,6 +28,11 @@
             border-color: #475569;
             transform: scale(1.1);
         }
+        /* 特定のカラム内では削除ボタンを非表示にする */
+        #stadiumA-list .delete-btn,
+        #done-list .delete-btn {
+            display: none;
+        }
         /* 削除時のフェードアウトアニメーション */
         .fade-out {
             opacity: 0;
