@@ -66,7 +66,7 @@
         <header class="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
             <div>
                 <h1 class="text-3xl font-bold text-slate-800">My Kanban Board</h1>
-                <p class="text-slate-600">カードを選択すると、画面下部に移動メニューが表示されます</p>
+                <p class="text-slate-600">カードを選択すると画面下部にメニューが表示されます。複数選択した状態でのドラッグ移動も可能です。</p>
             </div>
         </header>
 
@@ -204,7 +204,42 @@
                 animation: 150,
                 ghostClass: 'sortable-ghost',
                 dragClass: 'sortable-drag',
-                onEnd: function() {
+                onStart: function (evt) {
+                    // DOM上の出現順でソート（これが「元の並び順」の定義）
+                    selectedCards.sort((a, b) => {
+                        return a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1;
+                    });
+
+                    // ドラッグ要素が選択群に含まれる場合、他の要素を一時的に隠す
+                    if (evt.item.classList.contains('selected-card')) {
+                        selectedCards.forEach(card => {
+                            if (card !== evt.item) {
+                                card.style.display = 'none';
+                            }
+                        });
+                    }
+                },
+                onEnd: function (evt) {
+                    const targetList = evt.to;
+                    const draggedItem = evt.item;
+
+                    if (draggedItem.classList.contains('selected-card')) {
+                        // ドラッグされた要素がドロップされた時点でのインデックスを取得
+                        const children = Array.from(targetList.children);
+                        const dropIndex = children.indexOf(draggedItem);
+                        
+                        // 全ての選択されたカードを再表示
+                        selectedCards.forEach(card => card.style.display = '');
+
+                        // 元の並び順（selectedCardsの配列順）に従って、ドロップ位置に再挿入
+                        // 配列の逆順から挿入することで、dropIndexの位置に正しく順番に並ぶようにする
+                        const reversedSelected = [...selectedCards].reverse();
+                        reversedSelected.forEach(card => {
+                            // targetList.children[dropIndex] の位置に順番に差し込む
+                            targetList.insertBefore(card, targetList.children[dropIndex]);
+                        });
+                    }
+
                     updateCounts();
                 }
             });
@@ -218,7 +253,9 @@
             card.classList.toggle('selected-card');
             
             if (card.classList.contains('selected-card')) {
-                selectedCards.push(card);
+                if (!selectedCards.includes(card)) {
+                    selectedCards.push(card);
+                }
             } else {
                 selectedCards = selectedCards.filter(c => c !== card);
             }
@@ -238,11 +275,16 @@
             menu.classList.remove('hidden');
         }
 
-        // 選択したすべてのカードを指定したリストに移動
+        // ボタン経由での移動
         function moveSelectedCards(targetListId) {
             if (selectedCards.length === 0) return;
             const targetList = document.getElementById(targetListId);
             
+            // 並び順を維持
+            selectedCards.sort((a, b) => {
+                return a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1;
+            });
+
             selectedCards.forEach(card => {
                 card.classList.remove('selected-card');
                 targetList.appendChild(card);
@@ -253,12 +295,10 @@
             updateCounts();
         }
 
-        // メニューを閉じる
         function closeMenu() {
             document.getElementById('move-menu').classList.add('hidden');
         }
 
-        // メニュー外クリックで閉じる
         window.addEventListener('click', (e) => {
             if (!e.target.closest('#move-menu') && !e.target.closest('.kanban-list div')) {
                 selectedCards.forEach(card => card.classList.remove('selected-card'));
@@ -267,7 +307,6 @@
             }
         });
 
-        // タスク追加
         function addTask(listId) {
             const taskText = prompt("タスク内容を入力してください");
             if (!taskText) return;
@@ -294,7 +333,6 @@
             updateCounts();
         }
 
-        // 削除
         function removeCard(event, buttonElement) {
             event.stopPropagation();
             const card = buttonElement.parentElement;
