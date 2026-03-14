@@ -39,6 +39,14 @@
             transform: scale(0.9);
             transition: all 0.2s ease-out;
         }
+        /* メニューのフェードイン */
+        .menu-enter {
+            animation: fadeIn 0.1s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 <body class="bg-slate-100 min-h-screen p-4 md:p-8">
@@ -60,8 +68,8 @@
                 </div>
                 <!-- ドラッグ可能領域 -->
                 <div id="todo-list" class="kanban-list flex-grow flex flex-col gap-3 p-1">
-                    <div class="bg-white p-4 rounded-lg shadow-sm border border-slate-300 cursor-grab active:cursor-grabbing relative transition-all">
-                        <button onclick="removeCard(this)" title="選手削除" class="absolute top-2 right-2 p-1.5 delete-btn rounded-full transition-all shadow-sm">
+                    <div class="bg-white p-4 rounded-lg shadow-sm border border-slate-300 cursor-pointer hover:border-slate-400 relative transition-all" onclick="showMoveMenu(event, this)">
+                        <button onclick="removeCard(event, this)" title="選手削除" class="absolute top-2 right-2 p-1.5 delete-btn rounded-full transition-all shadow-sm">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                             </svg>
@@ -107,13 +115,22 @@
                 <div id="done-list" class="kanban-list flex-grow flex flex-col gap-3 p-1">
                 </div>
             </div>
-
         </div>
+    </div>
+
+    <!-- コンテキストメニューのテンプレート -->
+    <div id="move-menu" class="hidden fixed z-50 bg-white shadow-xl border border-slate-200 rounded-lg w-48 py-2 menu-enter">
+        <p class="px-4 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">移動先を選択</p>
+        <button onclick="moveCurrentCard('todo-list')" id="menu-to-todo" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 transition-colors">次呼ぼうとしている人へ移動</button>
+        <button onclick="moveCurrentCard('ready-list')" id="menu-to-doing" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 transition-colors">呼ばれるかもへ移動</button>
+        <button onclick="moveCurrentCard('stadiumA-list')" id="menu-to-done" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 transition-colors">スタジアムAへ移動</button>
+        <button onclick="moveCurrentCard('done-list')" id="menu-to-done" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 transition-colors">再度呼び出しへ移動</button>
     </div>
 
     <script>
         // Sortableの初期化
         const lists = ['todo-list', 'ready-list', 'stadiumA-list', 'done-list'];
+        let selectedCard = null;
         
         lists.forEach(id => {
             const el = document.getElementById(id);
@@ -127,6 +144,47 @@
             });
         });
 
+        // 移動メニューの表示
+        function showMoveMenu(event, card) {
+            // 子要素（削除ボタン）がクリックされた場合はメニューを出さない
+            if (event.target.closest('button')) return;
+
+            event.stopPropagation();
+            selectedCard = card;
+            const menu = document.getElementById('move-menu');
+            const currentListId = card.parentElement.id;
+
+            // 現在のカラムをメニューから隠す
+            document.getElementById('menu-to-todo').classList.toggle('hidden', currentListId === 'todo-list');
+            document.getElementById('menu-to-doing').classList.toggle('hidden', currentListId === 'doing-list');
+            document.getElementById('menu-to-done').classList.toggle('hidden', currentListId === 'done-list');
+
+            // 表示位置の計算
+            menu.style.left = `${event.clientX}px`;
+            menu.style.top = `${event.clientY}px`;
+            menu.classList.remove('hidden');
+        }
+
+        // 指定したリストにカードを移動
+        function moveCurrentCard(targetListId) {
+            if (!selectedCard) return;
+            const targetList = document.getElementById(targetListId);
+            targetList.appendChild(selectedCard);
+            
+            closeMenu();
+            updateCounts();
+        }
+
+        // メニューを閉じる
+        function closeMenu() {
+            document.getElementById('move-menu').classList.add('hidden');
+            selectedCard = null;
+        }
+
+        // メニュー外クリックで閉じる
+        window.addEventListener('click', closeMenu);
+
+
         // 選手追加機能
         function addTask(listId) {
             const taskText = prompt("選手の番号を入力してください");
@@ -134,9 +192,10 @@
 
             const list = document.getElementById(listId);
             const card = document.createElement('div');
-            card.className = "bg-white p-4 rounded-lg shadow-sm border border-slate-300 cursor-grab active:cursor-grabbing relative transition-all";
+            card.className = "bg-white p-4 rounded-lg shadow-sm border border-slate-300 cursor-pointer hover:border-slate-400 relative transition-all";
+            card.onclick = (e) => showMoveMenu(e, card);
             card.innerHTML = `
-                <button onclick="removeCard(this)" title="選手削除" class="absolute top-2 right-2 p-1.5 delete-btn rounded-full transition-all shadow-sm">
+                <button onclick="removeCard(event, this)" title="選手削除" class="absolute top-2 right-2 p-1.5 delete-btn rounded-full transition-all shadow-sm">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                     </svg>
@@ -148,7 +207,9 @@
         }
 
         // カードを削除する機能
-        function removeCard(buttonElement) {
+        // カードを削除する機能（event.stopPropagation()を追加してメニュー発火を防ぐ）
+        function removeCard(event, buttonElement) {
+            event.stopPropagation();
             const card = buttonElement.parentElement;
             
             // 確認ダイアログ
