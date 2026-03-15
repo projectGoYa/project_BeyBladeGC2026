@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simple Kanban Board</title>
+    <title>BeyBlade Grand Champions 2026 - Controller</title>
     <!-- SortableJS CDN: ドラッグ&ドロップを簡単に実装するライブラリ -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -76,7 +76,7 @@
     <div class="max-w-6xl mx-auto">
         <header class="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
             <div>
-                <h1 class="text-3xl font-bold text-slate-800">BeyBlade Grand Champions 2026</h1>
+                <h1 class="text-3xl font-bold text-slate-800">BeyBlade Grand Champions 2026 - Controller</h1>
             </div>
         </header>
 
@@ -93,17 +93,7 @@
                         <button id="select-todo-list" onclick="toggleSelectAll('todo-list')" class="select-all-btn text-[10px] font-bold text-slate-500 uppercase tracking-wider transition-colors">全選択</button>
                     </div>
                 </div>
-                <!-- ドラッグ可能領域 -->
                 <div id="todo-list" class="kanban-list flex-grow flex flex-col gap-3 p-1">
-                    <div class="bg-white p-4 rounded-lg shadow-sm border border-slate-300 cursor-pointer hover:border-slate-400 relative transition-all" onclick="toggleCardSelection(event, this)">
-                        <div class="selected-badge absolute -top-2 -left-2 bg-blue-600 text-white rounded-full p-1 shadow-sm">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
-                        </div>
-                        <button onclick="removeCard(event, this)" class="absolute top-2 right-2 p-1.5 delete-btn rounded-full transition-all shadow-sm z-10">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                        </button>                        
-                        <p class="text-slate-800 font-medium">000</p>
-                    </div>
                 </div>
                 <!-- 選手追加追加ボタン -->
                 <button onclick="openBulkAddModal('todo-list')" class="mt-4 w-full py-2 border-2 border-dashed border-slate-400 rounded-lg text-slate-500 hover:bg-slate-300 hover:text-slate-700 transition-colors text-sm font-medium">
@@ -112,10 +102,10 @@
             </div>
 
             <!-- 準備しといてね カラム -->
-            <div class="bg-slate-200 p-4 rounded-xl w-full md:w-1/3 min-h-[500px] flex flex-col">
+            <div class="bg-yellow-50 p-4 rounded-xl w-full md:w-1/3 min-h-[500px] flex flex-col">
                 <div class="flex justify-between items-center mb-4 px-2">
                     <h2 class="font-bold text-slate-700 flex items-center">
-                        呼ばれるかもよ、準備しといて
+                        そろそろ呼び出す
                     </h2>
                     <div class="flex items-center gap-2">
                         <button id="select-ready-list" onclick="toggleSelectAll('ready-list')" class="select-all-btn text-[10px] font-bold text-slate-500 uppercase tracking-wider transition-colors">全選択</button>
@@ -143,7 +133,7 @@
             <div class="bg-slate-200 p-4 rounded-xl w-full md:w-1/3 min-h-[500px] flex flex-col">
                 <div class="flex justify-between items-center mb-4 px-2">
                     <h2 class="font-bold text-slate-700 flex items-center">
-                        再度呼び出し
+                        また後で呼び出す
                     </h2>
                     <div class="flex items-center gap-2">
                         <button id="select-done-list" onclick="toggleSelectAll('done-list')" class="select-all-btn text-[10px] font-bold text-slate-500 uppercase tracking-wider transition-colors">全選択</button>
@@ -195,9 +185,35 @@
     <script>
         // Sortableの初期化
         const lists = ['todo-list', 'ready-list', 'stadiumA-list', 'done-list'];
+        const STORAGE_KEY = 'kanban_data';
         let selectedCards = [];
         let currentTargetListId = '';
-        
+
+                // --- データ永続化ロジック ---
+        function saveToLocalStorage() {
+            const data = {};
+            lists.forEach(id => {
+                const cards = Array.from(document.getElementById(id).children);
+                data[id] = cards.map(card => card.querySelector('p').innerText);
+            });
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        }
+
+        function loadFromLocalStorage() {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            if (!stored) return;
+            const data = JSON.parse(stored);
+            lists.forEach(id => {
+                const listEl = document.getElementById(id);
+                listEl.innerHTML = '';
+                if (data[id]) {
+                    data[id].forEach(text => createCardElement(id, text, false));
+                }
+            });
+            updateSelectAllButtons();
+        }
+
+        // --- Sortableの初期化 ---
         lists.forEach(id => {
             const el = document.getElementById(id);
             new Sortable(el, {
@@ -223,20 +239,20 @@
                             targetList.insertBefore(card, targetList.children[dropIndex]);
                         });
                     }
+                    saveToLocalStorage();
                     updateSelectAllButtons();
                 }
             });
         });
 
 
-        // 連続追加モーダルの制御
+        // --- UI制御 ---
         function openBulkAddModal(listId) {
             currentTargetListId = listId;
             const container = document.getElementById('bulk-input-container');
             container.innerHTML = ''; // リセット
             addInputRow(); // 最初の1行を追加
             document.getElementById('bulk-add-modal').classList.remove('hidden');
-            container.querySelector('input').focus();
         }
 
         function closeBulkAddModal() {
@@ -267,24 +283,20 @@
 
         function saveBulkTasks() {
             const inputs = document.querySelectorAll('.bulk-input');
-            let addedCount = 0;
+            let added = false;
             inputs.forEach(input => {
                 const text = input.value.trim();
-                if (text) {
-                    createCardElement(currentTargetListId, text);
-                    addedCount++;
-                }
+                if (text) { createCardElement(currentTargetListId, text, false); added = true; }
             });
 
-            if (addedCount > 0) {
+            if (added) {
+                saveToLocalStorage();
                 updateSelectAllButtons();
                 closeBulkAddModal();
-            } else {
-                input.focus();
             }
         }
 
-        function createCardElement(listId, text) {
+        function createCardElement(listId, text, autoSave = true) {
             const list = document.getElementById(listId);
             const card = document.createElement('div');
             card.className = "bg-white p-4 rounded-lg shadow-sm border border-slate-300 cursor-pointer hover:border-slate-400 relative transition-all";
@@ -299,6 +311,7 @@
                 <p class="text-slate-800 font-medium pr-10">${text}</p>
             `;
             list.appendChild(card);
+            if (autoSave) saveToLocalStorage();
         }
 
         // --- 共通ロジック ---
@@ -383,6 +396,7 @@
             });
             
             selectedCards = [];
+            saveToLocalStorage();
             updateMenuUI();
             updateSelectAllButtons();
         }
@@ -398,7 +412,7 @@
                 // アニメーション用のクラスを追加
                 card.classList.add('fade-out');
                 selectedCards = selectedCards.filter(c => c !== card);
-                setTimeout(() => { card.remove(); updateSelectAllButtons(); updateMenuUI(); }, 200);
+                setTimeout(() => { card.remove(); saveToLocalStorage(); updateSelectAllButtons(); updateMenuUI(); }, 200);
             }
         }
         window.onclick = (e) => {
@@ -410,7 +424,7 @@
             }
         };
 
-        window.onload = () => { updateSelectAllButtons(); };
+        window.onload = loadFromLocalStorage;
     </script>
 </body>
 </html>
