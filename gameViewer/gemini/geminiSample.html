@@ -250,8 +250,25 @@
                 </button>
             `;
             container.appendChild(div);
-            div.querySelector('input').focus();
-            div.querySelector('input').onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); addInputRow(); } };
+            
+            const input = div.querySelector('input');
+            input.focus();
+
+            // Mac IME対応: 変換中かどうかを厳密に管理
+            let isComposing = false;
+            input.addEventListener('compositionstart', () => { isComposing = true; });
+            input.addEventListener('compositionend', () => { isComposing = false; });
+
+            input.addEventListener('keydown', (e) => {
+                // e.keyCode === 229 はIME入力中を指す標準的な値
+                if (e.key === 'Enter') {
+                    if (isComposing || e.isComposing || e.keyCode === 229) {
+                        return; // 変換中は次の行へ行かない
+                    }
+                    e.preventDefault();
+                    addInputRow();
+                }
+            });
         }
 
         function saveBulkTasks() {
@@ -392,12 +409,12 @@
 
                 // アニメーション完了後にDOMから削除
                 setTimeout(() => {
-                    selectedCards.forEach(card => card.remove());
-                    selectedCards = [];
-                    saveToLocalStorage();
-                    updateCounts();
-                    updateSelectAllButtons();
-                    updateMenuUI();
+                selectedCards.forEach(card => card.remove());
+                selectedCards = [];
+                saveToLocalStorage();
+                updateCounts();
+                updateSelectAllButtons();
+                updateMenuUI();
                 }, 200);
             }
         }
