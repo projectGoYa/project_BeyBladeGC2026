@@ -215,6 +215,7 @@
                     saveToLocalStorage();
                     updateCounts();
                     updateSelectAllButtons();
+                    updateMenuUI(); // ドラッグ移動後もメニューを更新
                 }
             });
         });
@@ -327,7 +328,10 @@
             const menu = document.getElementById('move-menu');
             if (selectedCards.length > 0) {
                 document.getElementById('menu-title-count').innerText = selectedCards.length;
+                
+                // 現在選択されているカードが所属しているリストIDを取得
                 const parentLists = new Set(selectedCards.map(card => card.parentElement.id));
+                
                 lists.forEach(id => {
                     const btn = document.getElementById(`btn-${id}`);
                     (parentLists.size === 1 && parentLists.has(id)) ? btn.classList.add('hidden') : btn.classList.remove('hidden');
