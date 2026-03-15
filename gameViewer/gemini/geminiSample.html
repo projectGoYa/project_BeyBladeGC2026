@@ -151,15 +151,21 @@
         </div>
     </div>
 
-    <!-- 移動メニュー -->
-    <div id="move-menu" class="hidden fixed bottom-10 left-1/2 -translate-x-1/2 z-50 bg-white shadow-2xl border border-slate-200 rounded-2xl w-[90%] max-w-lg p-2 menu-enter flex flex-col sm:flex-row items-center gap-2">
+    <!-- 移動・一括操作メニュー -->
+    <div id="move-menu" class="hidden fixed bottom-10 left-1/2 -translate-x-1/2 z-50 bg-white shadow-2xl border border-slate-200 rounded-2xl w-[95%] max-w-2xl p-2 menu-enter flex flex-col lg:flex-row items-center gap-2">
         <div class="px-4 py-2 text-sm font-bold text-blue-600 bg-blue-50 rounded-xl whitespace-nowrap">
             <span id="menu-title-count">0</span>件を選択中
         </div>
         <div class="flex flex-wrap justify-center gap-2 w-full">
-            <button id="btn-todo-list" onclick="moveSelectedCards('todo-list')" class="flex-grow px-4 py-2.5 text-sm font-medium text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors border border-slate-200">未着手へ</button>
-            <button id="btn-doing-list" onclick="moveSelectedCards('doing-list')" class="flex-grow px-4 py-2.5 text-sm font-medium text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors border border-slate-200">進行中へ</button>
-            <button id="btn-done-list" onclick="moveSelectedCards('done-list')" class="flex-grow px-4 py-2.5 text-sm font-medium text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors border border-slate-200">完了へ</button>
+            <button id="btn-todo-list" onclick="moveSelectedCards('todo-list')" class="flex-grow px-3 py-2 text-xs font-bold text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors border border-slate-200">未着手へ</button>
+            <button id="btn-doing-list" onclick="moveSelectedCards('doing-list')" class="flex-grow px-3 py-2 text-xs font-bold text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors border border-slate-200">進行中へ</button>
+            <button id="btn-done-list" onclick="moveSelectedCards('done-list')" class="flex-grow px-3 py-2 text-xs font-bold text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors border border-slate-200">完了へ</button>
+            
+            <!-- 一括削除ボタン -->
+            <button onclick="removeSelectedCards()" class="flex-grow px-4 py-2 text-xs font-bold text-white bg-red-500 hover:bg-red-600 rounded-xl transition-all shadow-md shadow-red-100 flex items-center justify-center gap-1">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                一括削除
+            </button>
         </div>
     </div>
 
@@ -368,6 +374,28 @@
                     updateCounts(); 
                     updateSelectAllButtons(); 
                     updateMenuUI(); 
+                }, 200);
+            }
+        }
+
+        // --- 一括削除機能 ---
+        function removeSelectedCards() {
+            if (selectedCards.length === 0) return;
+            
+            if (confirm(`選択中の ${selectedCards.length} 件のタスクをすべて削除しますか？`)) {
+                // 各カードにフェードアウトを適用
+                selectedCards.forEach(card => {
+                    card.classList.add('fade-out');
+                });
+
+                // アニメーション完了後にDOMから削除
+                setTimeout(() => {
+                    selectedCards.forEach(card => card.remove());
+                    selectedCards = [];
+                    saveToLocalStorage();
+                    updateCounts();
+                    updateSelectAllButtons();
+                    updateMenuUI();
                 }, 200);
             }
         }
