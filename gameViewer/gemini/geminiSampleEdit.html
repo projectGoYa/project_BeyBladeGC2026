@@ -85,7 +85,7 @@
         <div class="flex flex-col md:flex-row gap-6 items-start">
             
             <!-- 選手番号仮置き カラム csv とかで一括で読み込みたいけど人数多いと大変かも -->
-            <div class="bg-slate-200 p-4 rounded-xl w-full md:w-1/3 min-h-[500px] flex flex-col">
+            <div class="bg-slate-200 p-4 rounded-xl w-full md:w-1/3 min-h-[556px] flex flex-col">
                 <div class="flex justify-between items-center mb-4 px-2">
                     <h2 class="font-bold text-slate-700 flex items-center">
                         呼び出し待ち
@@ -103,7 +103,7 @@
             </div>
 
             <!-- 準備しといてね カラム -->
-            <div class="bg-yellow-50 p-4 rounded-xl w-full md:w-1/3 min-h-[500px] flex flex-col">
+            <div class="bg-yellow-50 p-4 rounded-xl w-full md:w-1/3 min-h-[556px] flex flex-col">
                 <div class="flex justify-between items-center mb-4 px-2">
                     <h2 class="font-bold text-slate-700 flex items-center">
                         そろそろ呼び出す
@@ -117,7 +117,7 @@
             </div>
 
             <!-- 試合中 カラム -->
-            <div class="bg-red-200 p-4 rounded-xl w-full md:w-1/3 min-h-[210px] flex flex-col">
+            <div class="bg-slate-200 p-4 rounded-xl w-full md:w-1/3 min-h-[556px] flex flex-col">
                 <div class="flex justify-between items-center mb-4 px-2">
                     <h2 class="font-bold text-slate-700 flex items-center">
                         スタジアムA
@@ -126,11 +126,8 @@
                         <button id="select-stadiumA-list" onclick="toggleSelectAll('stadiumA-list')" class="select-all-btn text-[10px] font-bold text-slate-500 uppercase tracking-wider transition-colors">全選択</button>
                     </div>
                 </div>
-                <div id="stadiumA-list" class="kanban-list flex-grow flex flex-col gap-3 p-1">
-                </div>
-            </div>
+                <div id="stadiumA-list" class="bg-red-200 kanban-list flex flex-col gap-3 p-1 min-h-[210px]"></div><br>
 
-            <div class="bg-blue-200 p-4 rounded-xl w-full md:w-1/3 min-h-[210px] flex flex-col">
                 <div class="flex justify-between items-center mb-4 px-2">
                     <h2 class="font-bold text-slate-700 flex items-center">
                         スタジアムB
@@ -139,12 +136,11 @@
                         <button id="select-stadiumB-list" onclick="toggleSelectAll('stadiumB-list')" class="select-all-btn text-[10px] font-bold text-slate-500 uppercase tracking-wider transition-colors">全選択</button>
                     </div>
                 </div>
-                <div id="stadiumB-list" class="kanban-list flex-grow flex flex-col gap-3 p-1">
-                </div>
+                <div id="stadiumB-list" class="bg-blue-200 kanban-list flex flex-col gap-3 p-1 min-h-[210px]"></div>
             </div>
 
             <!-- 呼び出し済み カラム -->
-            <div class="bg-slate-200 p-4 rounded-xl w-full md:w-1/3 min-h-[500px] flex flex-col">
+            <div class="bg-slate-200 p-4 rounded-xl w-full md:w-1/3 min-h-[556px] flex flex-col">
                 <div class="flex justify-between items-center mb-4 px-2">
                     <h2 class="font-bold text-slate-700 flex items-center">
                         また後で呼び出す
