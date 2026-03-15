@@ -59,6 +59,11 @@
         .selected-card .selected-badge {
             display: flex;
         }
+        /* 全選択ボタンのホバー効果 */
+        .select-all-btn:hover {
+            text-decoration: underline;
+            color: #3b82f6;
+        }
     </style>
 </head>
 <body class="bg-slate-100 min-h-screen p-4 md:p-8 pb-32">
@@ -79,6 +84,9 @@
                     <h2 class="font-bold text-slate-700 flex items-center">
                         次呼ぼうとしている人
                     </h2>
+                    <div class="flex items-center gap-2">
+                        <button id="select-todo-list" onclick="toggleSelectAll('todo-list')" class="select-all-btn text-[10px] font-bold text-slate-500 uppercase tracking-wider transition-colors">全選択</button>
+                    </div>
                 </div>
                 <!-- ドラッグ可能領域 -->
                 <div id="todo-list" class="kanban-list flex-grow flex flex-col gap-3 p-1">
@@ -108,6 +116,9 @@
                     <h2 class="font-bold text-slate-700 flex items-center">
                         呼ばれるかもよ、準備しといて
                     </h2>
+                    <div class="flex items-center gap-2">
+                        <button id="select-ready-list" onclick="toggleSelectAll('ready-list')" class="select-all-btn text-[10px] font-bold text-slate-500 uppercase tracking-wider transition-colors">全選択</button>
+                    </div>
                 </div>
                 <div id="ready-list" class="kanban-list flex-grow flex flex-col gap-3 p-1">
                 </div>
@@ -119,6 +130,9 @@
                     <h2 class="font-bold text-slate-700 flex items-center">
                         スタジアムA
                     </h2>
+                    <div class="flex items-center gap-2">
+                        <button id="select-stadiumA-list" onclick="toggleSelectAll('stadiumA-list')" class="select-all-btn text-[10px] font-bold text-slate-500 uppercase tracking-wider transition-colors">全選択</button>
+                    </div>
                 </div>
                 <div id="stadiumA-list" class="kanban-list flex-grow flex flex-col gap-3 p-1">
                 </div>
@@ -130,6 +144,9 @@
                     <h2 class="font-bold text-slate-700 flex items-center">
                         再度呼び出し
                     </h2>
+                    <div class="flex items-center gap-2">
+                        <button id="select-done-list" onclick="toggleSelectAll('done-list')" class="select-all-btn text-[10px] font-bold text-slate-500 uppercase tracking-wider transition-colors">全選択</button>
+                    </div>
                 </div>
                 <div id="done-list" class="kanban-list flex-grow flex flex-col gap-3 p-1">
                 </div>
@@ -164,16 +181,12 @@
                 dragClass: 'sortable-drag',   // ドラッグ中の要素のクラス
                 onStart: function (evt) {
                     // DOM上の出現順でソート（これが「元の並び順」の定義）
-                    selectedCards.sort((a, b) => {
-                        return a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1;
-                    });
+                    selectedCards.sort((a, b) => a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1);
 
                     // ドラッグ要素が選択群に含まれる場合、他の要素を一時的に隠す
                     if (evt.item.classList.contains('selected-card')) {
                         selectedCards.forEach(card => {
-                            if (card !== evt.item) {
-                                card.style.display = 'none';
-                            }
+                            if (card !== evt.item) card.style.display = 'none';
                         });
                     }
                 },
@@ -197,10 +210,58 @@
                             targetList.insertBefore(card, targetList.children[dropIndex]);
                         });
                     }
+                    updateSelectAllButtons();
                 }
             });
         });
 
+        // 全選択/解除の切り替え
+        function toggleSelectAll(listId) {
+            const listEl = document.getElementById(listId);
+            const cards = Array.from(listEl.children);
+            if (cards.length === 0) return;
+
+            const allSelectedInThisList = cards.every(card => card.classList.contains('selected-card'));
+
+            if (allSelectedInThisList) {
+                // 全解除
+                cards.forEach(card => {
+                    card.classList.remove('selected-card');
+                    selectedCards = selectedCards.filter(c => c !== card);
+                });
+            } else {
+                // 全選択
+                cards.forEach(card => {
+                    if (!card.classList.contains('selected-card')) {
+                        card.classList.add('selected-card');
+                        selectedCards.push(card);
+                    }
+                });
+            }
+
+            updateMenuUI();
+            updateSelectAllButtons();
+        }
+
+        // ボタンのラベル更新
+        function updateSelectAllButtons() {
+            lists.forEach(id => {
+                const listEl = document.getElementById(id);
+                const btn = document.getElementById(`select-${id}`);
+                const cards = Array.from(listEl.children);
+                
+                if (cards.length === 0) {
+                    btn.innerText = "全選択";
+                    btn.style.opacity = "0.3";
+                    return;
+                }
+                
+                btn.style.opacity = "1";
+                const allSelected = cards.every(card => card.classList.contains('selected-card'));
+                btn.innerText = allSelected ? "選択解除" : "全選択";
+            });
+        }
+        
         // カードの選択切り替え
         function toggleCardSelection(event, card) {
             // 子要素（削除ボタン）がクリックされた場合は何もしない
@@ -211,13 +272,16 @@
             
             // 選択リストの更新
             if (card.classList.contains('selected-card')) {
-                if (!selectedCards.includes(card)) {
-                    selectedCards.push(card);
-                }
+                if (!selectedCards.includes(card)) selectedCards.push(card);
             } else {
                 selectedCards = selectedCards.filter(c => c !== card);
             }
 
+            updateMenuUI();
+            updateSelectAllButtons();
+        }
+
+        function updateMenuUI() {            
             // 右クリックのような動作でメニューを表示（1枚以上選択されている時）
             if (selectedCards.length > 0) {
                 showMoveMenu();
@@ -254,11 +318,7 @@
             if (selectedCards.length === 0) return;
             const targetList = document.getElementById(targetListId);
 
-            // 並び順を維持
-            selectedCards.sort((a, b) => {
-                return a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1;
-            });
-
+            selectedCards.sort((a, b) => a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1);
             selectedCards.forEach(card => {
                 card.classList.remove('selected-card');
                 targetList.appendChild(card);
@@ -267,7 +327,7 @@
             selectedCards = [];
             
             closeMenu();
-            updateCounts();
+            updateSelectAllButtons();
         }
 
         // メニューを閉じる
@@ -277,11 +337,12 @@
 
         // メニュー外クリックで閉じる（ただしカード自体のクリックは許容）
         window.addEventListener('click', (e) => {
-            if (!e.target.closest('#move-menu') && !e.target.closest('.kanban-list div')) {
+            if (!e.target.closest('#move-menu') && !e.target.closest('.kanban-list div') && !e.target.closest('.select-all-btn')) {
                 // カード以外の場所をクリックしたときに全選択を解除する挙動
                 selectedCards.forEach(card => card.classList.remove('selected-card'));
                 selectedCards = [];
                 closeMenu();
+                updateSelectAllButtons();
             }
         });
 
@@ -310,6 +371,7 @@
             `;
             
             list.appendChild(card);
+            updateSelectAllButtons();
         }
 
         // カードを削除する機能
@@ -328,10 +390,13 @@
                 // アニメーション完了後に要素を削除
                 setTimeout(() => {
                     card.remove();
-                    updateCounts();
+                    updateSelectAllButtons();
                 }, 200);
             }
         }
+        window.onload = () => {
+            updateSelectAllButtons();
+        };
     </script>
 </body>
 </html>
