@@ -31,6 +31,8 @@
         /* 特定のカラム内では削除ボタンを非表示にする */
         #stadiumA-list .delete-btn,
         #stadiumB-list .delete-btn,
+        #stadiumC-list .delete-btn,
+        #stadiumD-list .delete-btn,                
         #done-list .delete-btn {
             display: none;
         }
@@ -139,6 +141,28 @@
                 <div id="stadiumB-list" class="bg-blue-200 kanban-list flex flex-col gap-3 p-1 min-h-[210px]"></div>
             </div>
 
+            <div class="bg-slate-200 p-4 rounded-xl w-full md:w-1/3 min-h-[556px] flex flex-col">
+                <div class="flex justify-between items-center mb-4 px-2">
+                    <h2 class="font-bold text-slate-700 flex items-center">
+                        スタジアムC
+                    </h2>
+                    <div class="flex items-center gap-2">
+                        <button id="select-stadiumC-list" onclick="toggleSelectAll('stadiumC-list')" class="select-all-btn text-[10px] font-bold text-slate-500 uppercase tracking-wider transition-colors">全選択</button>
+                    </div>
+                </div>
+                <div id="stadiumC-list" class="bg-green-200 kanban-list flex flex-col gap-3 p-1 min-h-[210px]"></div><br>
+
+                <div class="flex justify-between items-center mb-4 px-2">
+                    <h2 class="font-bold text-slate-700 flex items-center">
+                        スタジアムD
+                    </h2>
+                    <div class="flex items-center gap-2">
+                        <button id="select-stadiumD-list" onclick="toggleSelectAll('stadiumD-list')" class="select-all-btn text-[10px] font-bold text-slate-500 uppercase tracking-wider transition-colors">全選択</button>
+                    </div>
+                </div>
+                <div id="stadiumD-list" class="bg-orange-200 kanban-list flex flex-col gap-3 p-1 min-h-[210px]"></div>
+            </div>
+
             <!-- 呼び出し済み カラム -->
             <div class="bg-slate-200 p-4 rounded-xl w-full md:w-1/3 min-h-[556px] flex flex-col">
                 <div class="flex justify-between items-center mb-4 px-2">
@@ -189,13 +213,15 @@
             <button id="btn-ready-list" onclick="moveSelectedCards('ready-list')" class="flex-grow px-4 py-2.5 text-sm font-medium text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors border border-slate-200">そろそろ</button>
             <button id="btn-stadiumA-list" onclick="moveSelectedCards('stadiumA-list')" class="flex-grow px-4 py-2.5 text-sm font-medium text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors border border-slate-200">スタジアムA</button>
             <button id="btn-stadiumB-list" onclick="moveSelectedCards('stadiumB-list')" class="flex-grow px-4 py-2.5 text-sm font-medium text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors border border-slate-200">スタジアムB</button>
+            <button id="btn-stadiumC-list" onclick="moveSelectedCards('stadiumC-list')" class="flex-grow px-4 py-2.5 text-sm font-medium text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors border border-slate-200">スタジアムC</button>
+            <button id="btn-stadiumD-list" onclick="moveSelectedCards('stadiumD-list')" class="flex-grow px-4 py-2.5 text-sm font-medium text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors border border-slate-200">スタジアムD</button>
             <button id="btn-done-list" onclick="moveSelectedCards('done-list')" class="flex-grow px-4 py-2.5 text-sm font-medium text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors border border-slate-200">また後で</button>
         </div>
     </div>
 
     <script>
         // Sortableの初期化
-        const lists = ['todo-list', 'ready-list', 'stadiumA-list', 'stadiumB-list', 'done-list'];
+        const lists = ['todo-list', 'ready-list', 'stadiumA-list', 'stadiumB-list', 'stadiumC-list', 'stadiumD-list', 'done-list'];
         const STORAGE_KEY = 'kanban_data';
         let selectedCards = [];
         let currentTargetListId = '';
