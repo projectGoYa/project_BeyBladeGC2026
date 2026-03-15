@@ -365,7 +365,9 @@
         function removeCard(event, btn) {
             event.stopPropagation();
             const card = btn.parentElement;
-            if (confirm("このタスクを削除しますか？")) {
+            const taskName = card.querySelector('p').innerText;
+            
+            if (confirm(`タスク「${taskName}」を削除しますか？`)) {
                 card.classList.add('fade-out');
                 selectedCards = selectedCards.filter(c => c !== card);
                 setTimeout(() => { 
