@@ -452,9 +452,10 @@
         function removeCard(event, btn) {
             event.stopPropagation();
             const card = btn.parentElement;
+            const bladerName = card.querySelector('p').innerText;
             
             // 確認ダイアログ
-            if (confirm("この選手を削除しますか？")) {
+            if (confirm(`${bladerName} さんを削除しますか？`)) {
                 // アニメーション用のクラスを追加
                 card.classList.add('fade-out');
                 selectedCards = selectedCards.filter(c => c !== card);
