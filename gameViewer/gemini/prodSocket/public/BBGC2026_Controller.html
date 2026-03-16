@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BeyBlade Grand Champions 2026 - Controller</title>
+    <!-- SortableJS CDN: ドラッグ&ドロップを簡単に実装するライブラリ -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* ライブラリが要素を移動させている間のスタイル */
+        .sortable-ghost {
+            opacity: 0.4;
+            background-color: #cbd5e1 !important;
+        }
+        .sortable-drag {
+            cursor: grabbing;
+        }
+        /* 削除ボタンのスタイルとアニメーション */
+        .delete-btn {
+            background-color: #f1f5f9;
+            color: #64748b;
+            border: 1px solid #e2e8f0;
+        }
+        .delete-btn:hover {
+            background-color: #ef4444;
+            color: white;
+            border-color: #ef4444;
+            transform: scale(1.1);
+        }
+        /* 特定のカラム内では削除ボタンを非表示にする */
+        #stadiumA-list .delete-btn,
+        #stadiumB-list .delete-btn,
+        #stadiumC-list .delete-btn,
+        #stadiumD-list .delete-btn,                
+        #wait-list .delete-btn {
+            display: none;
+        }
+        /* 削除時のフェードアウトアニメーション */
+        .fade-out {
+            opacity: 0;
+            transform: scale(0.9);
+            transition: all 0.2s ease-out;
+        }
+        /* メニューのフェードイン（下からスライドアップ） */
+        .menu-enter {
+            animation: slideUp 0.3s ease-out;
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translate(-50%, 20px); }
+            to { opacity: 1; transform: translate(-50%, 0); }
+        }
+        /* 複数選択時のスタイル */
+        .selected-card {
+            border-color: #3b82f6 !important;
+            border-width: 2px !important;
+            background-color: #eff6ff !important;
+        }
+        .selected-badge {
+            display: none;
+        }
+        .selected-card .selected-badge {
+            display: flex;
+        }
+        /* 全選択ボタンのホバー効果 */
+        .select-all-btn:hover {
+            text-decoration: underline;
+            color: #3b82f6;
+        }
+        /* モーダルアニメーション */
+        .modal-backdrop {
+            background-color: rgba(15, 23, 42, 0.5);
+            backdrop-filter: blur(4px);
+        }
+    </style>
+</head>
+<body class="bg-slate-100 min-h-screen p-4 md:p-8 pb-32">
+
+    <div class="max-w-6xl mx-auto">
+        <header class="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
+            <div>
+                <h1 class="text-3xl font-bold text-slate-800">BeyBlade Grand Champions 2026 - Controller</h1>
+            </div>
+        </header>
+
+        <!-- カンバンボード・コンテナ -->
+        <div class="flex flex-col md:flex-row gap-6 items-start">
+            
+            <!-- 選手番号仮置き カラム csv とかで一括で読み込みたいけど人数多いと大変かも -->
+            <div class="bg-slate-200 p-4 rounded-xl w-full md:w-1/3 min-h-[566px] flex flex-col">
+                <div class="flex justify-between items-center mb-4 px-2">
+                    <h2 class="font-bold text-slate-700 flex items-center">
+                        呼び出し待ち
+                    </h2>
+                    <div class="flex items-center gap-2">
+                        <button id="select-todo-list" onclick="toggleSelectAll('todo-list')" class="select-all-btn text-[10px] font-bold text-slate-500 uppercase tracking-wider transition-colors">全選択</button>
+                    </div>
+                </div>
+                <div id="todo-list" class="kanban-list flex-grow flex flex-col gap-3 p-1">
+                </div>
+                <!-- 選手追加追加ボタン -->
+                <button onclick="openBulkAddModal('todo-list')" class="mt-4 w-full py-2 border-2 border-dashed border-slate-400 rounded-lg text-slate-500 hover:bg-slate-300 hover:text-slate-700 transition-colors text-sm font-medium">
+                    + 選手番号追加（３桁）
+                </button>
+            </div>
+
+            <!-- 待機エリア カラム -->
+            <div class="bg-yellow-50 p-4 rounded-xl w-full md:w-1/3 min-h-[566px] flex flex-col">
+                <div class="flex justify-between items-center mb-4 px-2">
+                    <h2 class="font-bold text-slate-700 flex items-center">
+                        待機列呼び出し
+                    </h2>
+                    <div class="flex items-center gap-2">
+                        <button id="select-wait-list" onclick="toggleSelectAll('wait-list')" class="select-all-btn text-[10px] font-bold text-slate-500 uppercase tracking-wider transition-colors">全選択</button>
+                    </div>
+                </div>
+                <div id="wait-list" class="kanban-list flex-grow flex flex-col gap-3 p-1">
+                </div>
+            </div>
+
+            <!-- 試合中 カラム -->
+            <div class="bg-slate-200 p-4 rounded-xl w-full md:w-1/3 min-h-[566px] flex flex-col">
+                <div class="flex justify-between items-center mb-4 px-2">
+                    <h2 class="font-bold text-slate-700 flex items-center">
+                        スタジアムA
+                    </h2>
+                    <div class="flex items-center gap-2">
+                        <button id="select-stadiumA-list" onclick="toggleSelectAll('stadiumA-list')" class="select-all-btn text-[10px] font-bold text-slate-500 uppercase tracking-wider transition-colors">全選択</button>
+                    </div>
+                </div>
+                <div id="stadiumA-list" class="bg-red-200 kanban-list flex flex-col gap-3 p-1 min-h-[210px]"></div><br>
+
+                <div class="flex justify-between items-center mb-4 px-2">
+                    <h2 class="font-bold text-slate-700 flex items-center">
+                        スタジアムB
+                    </h2>
+                    <div class="flex items-center gap-2">
+                        <button id="select-stadiumB-list" onclick="toggleSelectAll('stadiumB-list')" class="select-all-btn text-[10px] font-bold text-slate-500 uppercase tracking-wider transition-colors">全選択</button>
+                    </div>
+                </div>
+                <div id="stadiumB-list" class="bg-blue-200 kanban-list flex flex-col gap-3 p-1 min-h-[210px]"></div>
+            </div>
+
+            <div class="bg-slate-200 p-4 rounded-xl w-full md:w-1/3 min-h-[566px] flex flex-col">
+                <div class="flex justify-between items-center mb-4 px-2">
+                    <h2 class="font-bold text-slate-700 flex items-center">
+                        スタジアムC
+                    </h2>
+                    <div class="flex items-center gap-2">
+                        <button id="select-stadiumC-list" onclick="toggleSelectAll('stadiumC-list')" class="select-all-btn text-[10px] font-bold text-slate-500 uppercase tracking-wider transition-colors">全選択</button>
+                    </div>
+                </div>
+                <div id="stadiumC-list" class="bg-green-200 kanban-list flex flex-col gap-3 p-1 min-h-[210px]"></div><br>
+
+                <div class="flex justify-between items-center mb-4 px-2">
+                    <h2 class="font-bold text-slate-700 flex items-center">
+                        スタジアムD
+                    </h2>
+                    <div class="flex items-center gap-2">
+                        <button id="select-stadiumD-list" onclick="toggleSelectAll('stadiumD-list')" class="select-all-btn text-[10px] font-bold text-slate-500 uppercase tracking-wider transition-colors">全選択</button>
+                    </div>
+                </div>
+                <div id="stadiumD-list" class="bg-orange-200 kanban-list flex flex-col gap-3 p-1 min-h-[210px]"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 連続追加用モーダル -->
+    <div id="bulk-add-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div class="modal-backdrop absolute inset-0" onclick="closeBulkAddModal()"></div>
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg relative z-10 flex flex-col max-h-[80vh]">
+            <div class="p-6 border-b border-slate-100">
+                <h3 class="text-xl font-bold text-slate-800">選手の連続追加</h3>
+                <p class="text-sm text-slate-500 mt-1">実はブレーダーネームもいけちゃいます</p>
+            </div>
+            <div id="bulk-input-container" class="p-6 overflow-y-auto flex flex-col gap-3">
+                <!-- ここに動的に入力欄が追加される -->
+            </div>
+            <div class="p-6 bg-slate-50 rounded-b-2xl flex flex-col gap-3">
+                <button onclick="addInputRow()" class="flex items-center justify-center gap-2 w-full py-2 bg-white border border-slate-300 rounded-xl text-slate-600 hover:bg-slate-100 transition-colors font-medium">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+                    さらに選手を追加
+                </button>
+                <div class="flex gap-3">
+                    <button onclick="closeBulkAddModal()" class="flex-1 py-3 text-slate-500 font-bold hover:bg-slate-200 rounded-xl transition-colors">キャンセル</button>
+                    <button onclick="saveBulkTasks()" class="flex-1 py-3 bg-blue-600 text-white font-bold hover:bg-blue-700 rounded-xl transition-shadow shadow-lg shadow-blue-200">まとめて登録</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- コンテキストメニューのテンプレート -->
+    <div id="move-menu" class="hidden fixed bottom-10 left-1/2 -translate-x-1/2 z-50 bg-white shadow-2xl border border-slate-200 rounded-2xl w-[95%] max-w-2xl p-2 menu-enter flex flex-col lg:flex-row items-center gap-2">
+        <div class="px-4 py-2 text-sm font-bold text-blue-600 bg-blue-50 rounded-xl whitespace-nowrap">
+            <span id="menu-title-count">0</span>件を選択中
+        </div>
+        <div class="flex flex-wrap justify-center gap-2 w-full">
+            <button id="btn-todo-list" onclick="moveSelectedCards('todo-list')" class="flex-grow px-3 py-2 text-xs font-bold text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors border border-slate-200">呼び出し待ち</button>
+            <button id="btn-wait-list" onclick="moveSelectedCards('wait-list')" class="flex-grow px-3 py-2 text-xs font-bold text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors border border-slate-200">待機列</button>
+            <button id="btn-stadiumA-list" onclick="moveSelectedCards('stadiumA-list')" class="flex-grow px-3 py-2 text-xs font-bold text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors border border-slate-200">スタジアムA</button>
+            <button id="btn-stadiumB-list" onclick="moveSelectedCards('stadiumB-list')" class="flex-grow px-3 py-2 text-xs font-bold text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors border border-slate-200">スタジアムB</button>
+            <button id="btn-stadiumC-list" onclick="moveSelectedCards('stadiumC-list')" class="flex-grow px-3 py-2 text-xs font-bold text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors border border-slate-200">スタジアムC</button>
+            <button id="btn-stadiumD-list" onclick="moveSelectedCards('stadiumD-list')" class="flex-grow px-3 py-2 text-xs font-bold text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors border border-slate-200">スタジアムD</button>
+
+            <!-- 一括削除ボタン -->
+            <button onclick="removeSelectedCards()" class="flex-grow px-4 py-2 text-xs font-bold text-white bg-red-500 hover:bg-red-600 rounded-xl transition-all shadow-md shadow-red-100 flex items-center justify-center gap-1">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                一括削除
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Sortableの初期化
+        const lists = ['todo-list', 'wait-list', 'stadiumA-list', 'stadiumB-list', 'stadiumC-list', 'stadiumD-list'];
+        const STORAGE_KEY = 'kanban_data';
+        let selectedCards = [];
+        let currentTargetListId = '';
+
+                // --- データ永続化ロジック ---
+        function saveToLocalStorage() {
+            const data = {};
+            lists.forEach(id => {
+                const cards = Array.from(document.getElementById(id).children);
+                data[id] = cards.map(card => card.querySelector('p').innerText);
+            });
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        }
+
+        function loadFromLocalStorage() {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            if (!stored) return;
+            const data = JSON.parse(stored);
+            lists.forEach(id => {
+                const listEl = document.getElementById(id);
+                listEl.innerHTML = '';
+                if (data[id]) {
+                    data[id].forEach(text => createCardElement(id, text, false));
+                }
+            });
+            updateSelectAllButtons();
+        }
+
+        // --- Sortableの初期化 ---
+        lists.forEach(id => {
+            const el = document.getElementById(id);
+            new Sortable(el, {
+                group: 'kanban', // 同じグループ名にすることでカラム間の移動を許可
+                animation: 150,  // 移動時のアニメーション速度(ms)
+                ghostClass: 'sortable-ghost', // 移動中に表示されるプレースホルダーのクラス
+                onEnd: function (evt) {
+                    const targetList = evt.to;
+                    const draggedItem = evt.item;
+
+                    if (draggedItem.classList.contains('selected-card')) {
+                        // ドラッグされた要素がドロップされた時点でのインデックスを取得
+                        const children = Array.from(targetList.children);
+                        const dropIndex = children.indexOf(draggedItem);
+                        
+                        // 全ての選択されたカードを再表示
+                        selectedCards.forEach(card => card.style.display = '');
+
+                        // 元の並び順（selectedCardsの配列順）に従って、ドロップ位置に再挿入
+                        // 配列の逆順から挿入することで、dropIndexの位置に正しく順番に並ぶようにする
+                        [...selectedCards].reverse().forEach(card => {
+                            // targetList.children[dropIndex] の位置に順番に差し込む
+                            targetList.insertBefore(card, targetList.children[dropIndex]);
+                        });
+                    }
+                    saveToLocalStorage();
+                    updateSelectAllButtons();
+                    updateMenuUI(); // ドラッグ移動後もメニューを更新
+                }
+            });
+        });
+
+
+        // --- UI制御 ---
+        function openBulkAddModal(listId) {
+            currentTargetListId = listId;
+            const container = document.getElementById('bulk-input-container');
+            container.innerHTML = ''; // リセット
+            addInputRow(); // 最初の1行を追加
+            document.getElementById('bulk-add-modal').classList.remove('hidden');
+        }
+
+        function closeBulkAddModal() {
+            document.getElementById('bulk-add-modal').classList.add('hidden');
+        }
+
+        function addInputRow() {
+            const container = document.getElementById('bulk-input-container');
+            const div = document.createElement('div');
+            div.className = "flex gap-2 group";
+            div.innerHTML = `
+                <input type="text" placeholder="選手番号入力" class="bulk-input flex-grow p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                <button onclick="this.parentElement.remove()" class="p-3 text-slate-400 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            `;
+            container.appendChild(div);
+            const input = div.querySelector('input');
+            input.focus();
+
+            // Mac IME対応: 変換中かどうかを厳密に管理
+            let isComposing = false;
+            input.addEventListener('compositionstart', () => { isComposing = true; });
+            input.addEventListener('compositionend', () => { isComposing = false; });
+
+            input.addEventListener('keydown', (e) => {
+                // e.keyCode === 229 はIME入力中を指す標準的な値
+                if (e.key === 'Enter') {
+                    if (isComposing || e.isComposing || e.keyCode === 229) {
+                        return; // 変換中は次の行へ行かない
+                    }
+                    e.preventDefault();
+                    addInputRow();
+                }
+            });
+        }
+
+        function saveBulkTasks() {
+            const inputs = document.querySelectorAll('.bulk-input');
+            let added = false;
+            inputs.forEach(input => {
+                const text = input.value.trim();
+                if (text) { createCardElement(currentTargetListId, text, false); added = true; }
+            });
+
+            if (added) {
+                saveToLocalStorage();
+                updateSelectAllButtons();
+                closeBulkAddModal();
+            }
+        }
+
+        function createCardElement(listId, text, autoSave = true) {
+            const list = document.getElementById(listId);
+            const card = document.createElement('div');
+            card.className = "bg-white p-4 rounded-lg shadow-sm border border-slate-300 cursor-pointer hover:border-slate-400 relative transition-all";
+            card.onclick = (e) => toggleCardSelection(e, card);
+            card.innerHTML = `
+                <div class="selected-badge absolute -top-2 -left-2 bg-blue-600 text-white rounded-full p-1 shadow-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
+                </div>
+                <button onclick="removeCard(event, this)" class="absolute top-2 right-2 p-1.5 delete-btn rounded-full transition-all shadow-sm z-10">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                </button>
+                <p class="text-slate-800 font-medium pr-10">${text}</p>
+            `;
+            list.appendChild(card);
+            if (autoSave) saveToLocalStorage();
+        }
+
+        // --- 共通ロジック ---
+        function toggleSelectAll(listId) {
+            const listEl = document.getElementById(listId);
+            const cards = Array.from(listEl.children);
+            if (cards.length === 0) return;
+
+            const allSelected = cards.every(card => card.classList.contains('selected-card'));
+            cards.forEach(card => {
+                if (allSelected) {
+                    card.classList.remove('selected-card');
+                    selectedCards = selectedCards.filter(c => c !== card);
+                } else if (!card.classList.contains('selected-card')) {
+                    card.classList.add('selected-card');
+                    selectedCards.push(card);
+                }
+            });
+
+            updateMenuUI();
+            updateSelectAllButtons();
+        }
+
+        // ボタンのラベル更新
+        function updateSelectAllButtons() {
+            lists.forEach(id => {
+                const btn = document.getElementById(`select-${id}`);
+                const cards = Array.from(document.getElementById(id).children);
+                
+                if (cards.length === 0) {
+                    btn.innerText = "全選択"; btn.style.opacity = "0.3"; return;
+                }
+                
+                btn.style.opacity = "1";
+                btn.innerText = cards.every(card => card.classList.contains('selected-card')) ? "選択解除" : "全選択";
+            });
+        }
+        
+        // カードの選択切り替え
+        function toggleCardSelection(event, card) {
+            // 子要素（削除ボタン）がクリックされた場合は何もしない
+            if (event.target.closest('button')) return;
+
+            event.stopPropagation();
+            card.classList.toggle('selected-card');
+            
+            // 選択リストの更新
+            if (card.classList.contains('selected-card')) {
+                if (!selectedCards.includes(card)) selectedCards.push(card);
+            } else {
+                selectedCards = selectedCards.filter(c => c !== card);
+            }
+
+            updateMenuUI();
+            updateSelectAllButtons();
+        }
+
+        function updateMenuUI() {          
+            const menu = document.getElementById('move-menu');  
+            // 右クリックのような動作でメニューを表示（1枚以上選択されている時）
+            if (selectedCards.length > 0) {
+                document.getElementById('menu-title-count').innerText = selectedCards.length;
+
+                // 現在選択されているカードが所属しているリストIDを取得
+                const parentLists = new Set(selectedCards.map(card => card.parentElement.id));
+                lists.forEach(id => {
+                    const btn = document.getElementById(`btn-${id}`);
+                    (parentLists.size === 1 && parentLists.has(id)) ? btn.classList.add('hidden') : btn.classList.remove('hidden');
+                });
+                menu.classList.remove('hidden');
+            } else {
+                menu.classList.add('hidden');
+            }
+        }
+
+        // ボタン経由での移動
+        function moveSelectedCards(targetListId) {
+            const targetList = document.getElementById(targetListId);
+
+            selectedCards.sort((a, b) => a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1);
+            selectedCards.forEach(card => {
+                card.classList.remove('selected-card');
+                targetList.appendChild(card);
+            });
+            
+            selectedCards = [];
+            saveToLocalStorage();
+            updateMenuUI();
+            updateSelectAllButtons();
+        }
+
+        // カードを削除する機能
+        // カードを削除する機能（event.stopPropagation()を追加してメニュー発火を防ぐ）
+        function removeCard(event, btn) {
+            event.stopPropagation();
+            const card = btn.parentElement;
+            const bladerName = card.querySelector('p').innerText;
+            
+            // 確認ダイアログ
+            if (confirm(`${bladerName} さんを削除しますか？`)) {
+                // アニメーション用のクラスを追加
+                card.classList.add('fade-out');
+                selectedCards = selectedCards.filter(c => c !== card);
+                setTimeout(() => { card.remove(); saveToLocalStorage(); updateSelectAllButtons(); updateMenuUI(); }, 200);
+            }
+        }
+
+        // --- 一括削除機能 ---
+        function removeSelectedCards() {
+            if (selectedCards.length === 0) return;
+            
+            if (confirm(`選択中の ${selectedCards.length} 件のタスクをすべて削除しますか？`)) {
+                // 各カードにフェードアウトを適用
+                selectedCards.forEach(card => {
+                    card.classList.add('fade-out');
+                });
+
+                // アニメーション完了後にDOMから削除
+                setTimeout(() => {
+                    selectedCards.forEach(card => card.remove());
+                    selectedCards = [];
+                    saveToLocalStorage();
+                    updateSelectAllButtons();
+                    updateMenuUI();
+                }, 200);
+            }
+        }
+
+        window.onclick = (e) => {
+            if (!e.target.closest('#move-menu') && !e.target.closest('.kanban-list div') && !e.target.closest('.select-all-btn') && !e.target.closest('#bulk-add-modal') && !e.target.closest('button')) {
+                selectedCards.forEach(card => card.classList.remove('selected-card'));
+                selectedCards = [];
+                updateMenuUI();
+                updateSelectAllButtons();
+            }
+        };
+
+        window.onload = loadFromLocalStorage;
+    </script>
+</body>
+</html>
