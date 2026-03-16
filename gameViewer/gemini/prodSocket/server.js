@@ -7,7 +7,7 @@ const fs = require('fs');
 app.use(express.static('public'));
 
 // 起動時にファイルからデータを読み込む
-let kanbanData = { 'todo-list': [], 'doing-list': [], 'done-list': [] };
+let kanbanData = { 'todo-list': [], 'wait-list': [], 'stadiumA-list': [], 'stadiumB-list': [], 'stadiumC-list': [], 'stadiumD-list': [] };
 if (fs.existsSync('data.json')) {
     kanbanData = JSON.parse(fs.readFileSync('data.json'));
 }

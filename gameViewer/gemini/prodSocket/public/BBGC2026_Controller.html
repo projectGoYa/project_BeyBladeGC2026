@@ -7,6 +7,7 @@
     <!-- SortableJS CDN: ドラッグ&ドロップを簡単に実装するライブラリ -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/socket.io/socket.io.js"></script>
     <style>
         /* ライブラリが要素を移動させている間のスタイル */
         .sortable-ghost {
@@ -211,34 +212,38 @@
     </div>
 
     <script>
-        // Sortableの初期化
+        const socket = io();
         const lists = ['todo-list', 'wait-list', 'stadiumA-list', 'stadiumB-list', 'stadiumC-list', 'stadiumD-list'];
-        const STORAGE_KEY = 'kanban_data';
+
+        // サーバーからデータが送られてきたら、既存のDOMをすべてクリアして再構築する
+        socket.on('sync', (data) => {
+            lists.forEach(id => {
+                const container = document.getElementById(id);
+                
+                // 【重要】innerHTMLを空にして、DOMの重複を完全に回避する
+                container.innerHTML = ''; 
+                
+                // データを元にカードを生成
+                data[id].forEach(text => {
+                    createCardElement(id, text, false); 
+                });
+            });
+            updateSelectAllButtons();
+        });
+
+        // Sortableの初期化
         let selectedCards = [];
         let currentTargetListId = '';
 
-                // --- データ永続化ロジック ---
-        function saveToLocalStorage() {
+        // --- Socket 機能を使う ---
+        function saveAndSync() {
             const data = {};
             lists.forEach(id => {
                 const cards = Array.from(document.getElementById(id).children);
                 data[id] = cards.map(card => card.querySelector('p').innerText);
             });
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-        }
-
-        function loadFromLocalStorage() {
-            const stored = localStorage.getItem(STORAGE_KEY);
-            if (!stored) return;
-            const data = JSON.parse(stored);
-            lists.forEach(id => {
-                const listEl = document.getElementById(id);
-                listEl.innerHTML = '';
-                if (data[id]) {
-                    data[id].forEach(text => createCardElement(id, text, false));
-                }
-            });
-            updateSelectAllButtons();
+            // サーバーへ送信（これで自動的に全員の画面が更新される）
+            socket.emit('change', data);
         }
 
         // --- Sortableの初期化 ---
@@ -267,7 +272,7 @@
                             targetList.insertBefore(card, targetList.children[dropIndex]);
                         });
                     }
-                    saveToLocalStorage();
+                    saveAndSync();
                     updateSelectAllButtons();
                     updateMenuUI(); // ドラッグ移動後もメニューを更新
                 }
@@ -328,7 +333,7 @@
             });
 
             if (added) {
-                saveToLocalStorage();
+                saveAndSync();
                 updateSelectAllButtons();
                 closeBulkAddModal();
             }
@@ -349,7 +354,7 @@
                 <p class="text-slate-800 font-medium pr-10">${text}</p>
             `;
             list.appendChild(card);
-            if (autoSave) saveToLocalStorage();
+            if (autoSave) saveAndSync();
         }
 
         // --- 共通ロジック ---
@@ -436,7 +441,7 @@
             });
             
             selectedCards = [];
-            saveToLocalStorage();
+            saveAndSync();
             updateMenuUI();
             updateSelectAllButtons();
         }
@@ -453,7 +458,7 @@
                 // アニメーション用のクラスを追加
                 card.classList.add('fade-out');
                 selectedCards = selectedCards.filter(c => c !== card);
-                setTimeout(() => { card.remove(); saveToLocalStorage(); updateSelectAllButtons(); updateMenuUI(); }, 200);
+                setTimeout(() => { card.remove(); saveAndSync(); updateSelectAllButtons(); updateMenuUI(); }, 200);
             }
         }
 
@@ -471,7 +476,7 @@
                 setTimeout(() => {
                     selectedCards.forEach(card => card.remove());
                     selectedCards = [];
-                    saveToLocalStorage();
+                    saveAndSync();
                     updateSelectAllButtons();
                     updateMenuUI();
                 }, 200);
@@ -487,7 +492,7 @@
             }
         };
 
-        window.onload = loadFromLocalStorage;
+       window.onload = updateSelectAllButtons;
     </script>
 </body>
 </html>

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BeyBlade Grand Champions 2026 - Viewer</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/socket.io/socket.io.js"></script>
     <style>
         .kanban-column {
             transition: all 0.3s ease;
@@ -78,51 +79,30 @@
 
     <script>
         const lists = ['wait-list', 'stadiumA-list', 'stadiumB-list', 'stadiumC-list', 'stadiumD-list'];  // 表示させたくないリストはここで消す
-        const STORAGE_KEY = 'kanban_data';
+        const socket = io(); // サーバーへ接続
 
-        /**
-         * LocalStorageからデータを読み取り、画面を更新する
-         */
-        function renderBoard() {
-            const stored = localStorage.getItem(STORAGE_KEY);
-            if (!stored) return;
-
-            const data = JSON.parse(stored);
-            
-            lists.forEach(id => {
-                const container = document.getElementById(id);
-                // const countEl = document.getElementById(`${id.split('-')[0]}-count`);
-                const tasks = data[id] || [];
-                
-                // 現在表示されているテキストのリストを取得
-                const currentTasks = Array.from(container.children).map(el => el.querySelector('p').innerText);
-                
-                // データに変化がある場合のみ再描画（不要なDOM操作を避ける）
-                if (JSON.stringify(currentTasks) !== JSON.stringify(tasks)) {
-                    container.innerHTML = '';
-                    tasks.forEach(text => {
-                        const card = document.createElement('div');
-                        card.className = "bg-white p-4 rounded-lg shadow-sm border border-slate-200 card-enter";
-                        card.innerHTML = `<p class="text-slate-800 font-medium">${text}</p>`;
-                        container.appendChild(card);
-                    });
-                    // countEl.innerText = tasks.length;
-                }
-            });
-        }
-
-        // 初期表示時に実行
-        window.onload = renderBoard;
-
-        // 他のタブやウィンドウでのlocalStorage変更を検知
-        window.addEventListener('storage', (e) => {
-            if (e.key === STORAGE_KEY) {
-                renderBoard();
-            }
+        // サーバーからデータが届いた時の処理
+        socket.on('sync', (data) => {
+            console.log("データを受信しました:", data); // デバッグ用ログ
+            renderBoard(data); 
         });
 
-        // 定期的な同期チェック（同一タブ内での変更やstorageイベントのフォールバック用）
-        setInterval(renderBoard, 1000);
+        function renderBoard(data) {
+            // ここにHTMLを生成する処理を記述
+            lists.forEach(id => {
+                const container = document.getElementById(id);
+                if (!container) return;
+                
+                container.innerHTML = ''; // 一旦クリア
+                const tasks = data[id] || [];
+                tasks.forEach(text => {
+                    const card = document.createElement('div');
+                    card.className = "bg-white p-4 rounded-lg shadow-sm border border-slate-200 card-enter";
+                    card.innerHTML = `<p class="text-slate-800 font-medium">${text}</p>`;
+                    container.appendChild(card);
+                });
+            });
+        }
     </script>
 </body>
 </html>
