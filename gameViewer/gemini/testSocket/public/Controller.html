@@ -188,13 +188,12 @@
         });
 
         // 変更時にサーバーへ通知する（Controller側のみ）
-        function emitChange() {
-            const data = { /* 現在の全リストの状態を取得 */ };
-            socket.emit('change', data);
-        }
+        // function emitChange() {
+        //     const data = { /* 現在の全リストの状態を取得 */ };
+        //     socket.emit('change', data);
+        // }
 
         const lists = ['todo-list', 'doing-list', 'done-list'];
-        const STORAGE_KEY = 'kanban_data';
         let selectedCards = [];
         let currentTargetListId = '';
 
@@ -206,31 +205,6 @@
             });
             // サーバーへ送信（これで自動的に全員の画面が更新される）
             socket.emit('change', data);
-        }
-
-        // --- データ永続化ロジック ---
-        function saveToLocalStorage() {
-            const data = {};
-            lists.forEach(id => {
-                const cards = Array.from(document.getElementById(id).children);
-                data[id] = cards.map(card => card.querySelector('p').innerText);
-            });
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-        }
-
-        function loadFromLocalStorage() {
-            const stored = localStorage.getItem(STORAGE_KEY);
-            if (!stored) return;
-            const data = JSON.parse(stored);
-            lists.forEach(id => {
-                const listEl = document.getElementById(id);
-                listEl.innerHTML = '';
-                if (data[id]) {
-                    data[id].forEach(text => createCardElement(id, text, false));
-                }
-            });
-            updateCounts();
-            updateSelectAllButtons();
         }
 
         // --- Sortableの初期化 ---
@@ -467,8 +441,6 @@
                 updateSelectAllButtons();
             }
         };
-
-        window.onload = loadFromLocalStorage;
     </script>
 </body>
 </html>
