@@ -228,7 +228,10 @@
                     createCardElement(id, text, false); 
                 });
             });
+            // 選択状態などのリセット
+            selectedCards = []; 
             updateSelectAllButtons();
+            updateMenuUI();
         });
 
         // Sortableの初期化
@@ -341,6 +344,8 @@
 
         function createCardElement(listId, text, autoSave = true) {
             const list = document.getElementById(listId);
+            if (!list) return; // リストが存在しない場合はスキップ
+
             const card = document.createElement('div');
             card.className = "bg-white p-4 rounded-lg shadow-sm border border-slate-300 cursor-pointer hover:border-slate-400 relative transition-all";
             card.onclick = (e) => toggleCardSelection(e, card);
@@ -399,6 +404,10 @@
             if (event.target.closest('button')) return;
 
             event.stopPropagation();
+
+            // card が正しく渡されているかチェック
+            if (!card) return;
+
             card.classList.toggle('selected-card');
             
             // 選択リストの更新
@@ -418,12 +427,13 @@
             if (selectedCards.length > 0) {
                 document.getElementById('menu-title-count').innerText = selectedCards.length;
 
+                // 現在選択しているカードが、そのリスト内にしかない場合は、下のリストから削除する
                 // 現在選択されているカードが所属しているリストIDを取得
-                const parentLists = new Set(selectedCards.map(card => card.parentElement.id));
-                lists.forEach(id => {
-                    const btn = document.getElementById(`btn-${id}`);
-                    (parentLists.size === 1 && parentLists.has(id)) ? btn.classList.add('hidden') : btn.classList.remove('hidden');
-                });
+                // const parentLists = new Set(selectedCards.map(card => card.parentElement.id));
+                // lists.forEach(id => {
+                //     const btn = document.getElementById(`btn-${id}`);
+                //     (parentLists.size === 1 && parentLists.has(id)) ? btn.classList.add('hidden') : btn.classList.remove('hidden');
+                // });
                 menu.classList.remove('hidden');
             } else {
                 menu.classList.add('hidden');
