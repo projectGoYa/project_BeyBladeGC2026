@@ -32,7 +32,9 @@
         #stadiumA-list .delete-btn,
         #stadiumB-list .delete-btn,
         #stadiumC-list .delete-btn,
-        #stadiumD-list .delete-btn,                
+        #stadiumD-list .delete-btn,
+        #stadiumE-list .delete-btn,
+        #stadiumF-list .delete-btn,
         #wait-list .delete-btn {
             display: none;
         }
@@ -162,6 +164,28 @@
                 </div>
                 <div id="stadiumD-list" class="bg-orange-200 kanban-list flex flex-col gap-3 p-1 min-h-[210px]"></div>
             </div>
+
+            <div class="bg-slate-200 p-4 rounded-xl w-full md:w-1/3 min-h-[566px] flex flex-col">
+                <div class="flex justify-between items-center mb-4 px-2">
+                    <h2 class="font-bold text-slate-700 flex items-center">
+                        スタジアムE
+                    </h2>
+                    <div class="flex items-center gap-2">
+                        <button id="select-stadiumE-list" onclick="toggleSelectAll('stadiumE-list')" class="select-all-btn text-[10px] font-bold text-slate-500 uppercase tracking-wider transition-colors">全選択</button>
+                    </div>
+                </div>
+                <div id="stadiumE-list" class="bg-purple-200 kanban-list flex flex-col gap-3 p-1 min-h-[210px]"></div><br>
+
+                <div class="flex justify-between items-center mb-4 px-2">
+                    <h2 class="font-bold text-slate-700 flex items-center">
+                        スタジアムF
+                    </h2>
+                    <div class="flex items-center gap-2">
+                        <button id="select-stadiumF-list" onclick="toggleSelectAll('stadiumF-list')" class="select-all-btn text-[10px] font-bold text-slate-500 uppercase tracking-wider transition-colors">全選択</button>
+                    </div>
+                </div>
+                <div id="stadiumF-list" class="bg-pink-200 kanban-list flex flex-col gap-3 p-1 min-h-[210px]"></div>
+            </div>
         </div>
     </div>
 
@@ -201,6 +225,9 @@
             <button id="btn-stadiumB-list" onclick="moveSelectedCards('stadiumB-list')" class="flex-grow px-3 py-2 text-xs font-bold text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors border border-slate-200">スタジアムB</button>
             <button id="btn-stadiumC-list" onclick="moveSelectedCards('stadiumC-list')" class="flex-grow px-3 py-2 text-xs font-bold text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors border border-slate-200">スタジアムC</button>
             <button id="btn-stadiumD-list" onclick="moveSelectedCards('stadiumD-list')" class="flex-grow px-3 py-2 text-xs font-bold text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors border border-slate-200">スタジアムD</button>
+            <button id="btn-stadiumE-list" onclick="moveSelectedCards('stadiumE-list')" class="flex-grow px-3 py-2 text-xs font-bold text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors border border-slate-200">スタジアムE</button>
+            <button id="btn-stadiumF-list" onclick="moveSelectedCards('stadiumF-list')" class="flex-grow px-3 py-2 text-xs font-bold text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors border border-slate-200">スタジアムF</button>
+
 
             <!-- 一括削除ボタン -->
             <button onclick="removeSelectedCards()" class="flex-grow px-4 py-2 text-xs font-bold text-white bg-red-500 hover:bg-red-600 rounded-xl transition-all shadow-md shadow-red-100 flex items-center justify-center gap-1">
@@ -212,7 +239,7 @@
 
     <script>
         // Sortableの初期化
-        const lists = ['todo-list', 'wait-list', 'stadiumA-list', 'stadiumB-list', 'stadiumC-list', 'stadiumD-list'];
+        const lists = ['todo-list', 'wait-list', 'stadiumA-list', 'stadiumB-list', 'stadiumC-list', 'stadiumD-list', 'stadiumE-list', 'stadiumF-list'];
         const STORAGE_KEY = 'kanban_data';
         let selectedCards = [];
         let currentTargetListId = '';
