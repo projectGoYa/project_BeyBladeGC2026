@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BeyBlade Viewer - Colored Stadiums</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .match-text {
+            word-break: break-all;
+        }
+        #wait-list::-webkit-scrollbar {
+            display: none;
+        }
+        .note-box {
+            background-color: #fffbeb;
+            border: 1px solid #fcd34d;
+            color: #92400e;
+        }
+    </style>
+</head>
+<body class="h-screen flex flex-col bg-slate-100 overflow-hidden">
+
+    <header class="bg-gradient-to-r from-red-500 via-orange-400 to-yellow-300 text-white p-1.5 flex justify-center items-center shadow-md shrink-0">
+        <h1 class="text-xl font-black tracking-tighter text-white drop-shadow-sm">BEYBLADE GRAND CHAMPIONS 2026</h1>
+    </header>
+
+    <div class="flex flex-1 overflow-hidden">
+        
+        <aside class="w-60 bg-white border-r border-slate-300 flex flex-col shrink-0">
+            <div class="bg-slate-800 text-white p-1.5 font-bold text-center text-sm shadow-sm">待機列にお集まりください</div>
+            <div class="p-1.5 note-box m-1.5 rounded shadow-sm">
+                <p class="text-[9px] font-bold leading-tight">ベイ、ランチャー、交換用含め全てお持ちください</p>
+            </div>
+            <div id="wait-list" class="flex-1 overflow-y-auto p-1.5 space-y-1"></div>
+        </aside>
+
+        <main class="flex-1 flex flex-col min-w-0">
+            <div class="flex-1 bg-black flex items-center justify-center text-white relative">
+                <span class="text-slate-800 text-sm font-bold uppercase tracking-widest">Live Stream Preview</span>
+            </div>
+
+            <div class="h-32 bg-slate-200 grid grid-cols-6 gap-1 p-1 shadow-inner shrink-0">
+                <div class="bg-red-50 rounded flex flex-col border border-red-300 overflow-hidden shadow-sm text-center">
+                    <div class="bg-red-500 text-white font-bold py-0.5 text-[9px] uppercase tracking-wider">Stadium A</div>
+                    <div id="stadiumA-list" class="flex-1 flex flex-col items-center justify-center px-0.5 overflow-hidden text-red-950"></div>
+                </div>
+                <div class="bg-blue-50 rounded flex flex-col border border-blue-300 overflow-hidden shadow-sm text-center">
+                    <div class="bg-blue-500 text-white font-bold py-0.5 text-[9px] uppercase tracking-wider">Stadium B</div>
+                    <div id="stadiumB-list" class="flex-1 flex flex-col items-center justify-center px-0.5 overflow-hidden text-blue-950"></div>
+                </div>
+                <div class="bg-green-50 rounded flex flex-col border border-green-300 overflow-hidden shadow-sm text-center">
+                    <div class="bg-green-500 text-white font-bold py-0.5 text-[9px] uppercase tracking-wider">Stadium C</div>
+                    <div id="stadiumC-list" class="flex-1 flex flex-col items-center justify-center px-0.5 overflow-hidden text-green-950"></div>
+                </div>
+                <div class="bg-orange-50 rounded flex flex-col border border-orange-300 overflow-hidden shadow-sm text-center">
+                    <div class="bg-orange-500 text-white font-bold py-0.5 text-[9px] uppercase tracking-wider">Stadium D</div>
+                    <div id="stadiumD-list" class="flex-1 flex flex-col items-center justify-center px-0.5 overflow-hidden text-orange-950"></div>
+                </div>
+                <div class="bg-purple-50 rounded flex flex-col border border-purple-300 overflow-hidden shadow-sm text-center">
+                    <div class="bg-purple-500 text-white font-bold py-0.5 text-[9px] uppercase tracking-wider">Stadium E</div>
+                    <div id="stadiumE-list" class="flex-1 flex flex-col items-center justify-center px-0.5 overflow-hidden text-purple-950"></div>
+                </div>
+                <div class="bg-pink-50 rounded flex flex-col border border-pink-300 overflow-hidden shadow-sm text-center">
+                    <div class="bg-pink-500 text-white font-bold py-0.5 text-[9px] uppercase tracking-wider">Stadium F</div>
+                    <div id="stadiumF-list" class="flex-1 flex flex-col items-center justify-center px-0.5 overflow-hidden text-pink-950"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const lists = ['wait-list', 'stadiumA-list', 'stadiumB-list', 'stadiumC-list', 'stadiumD-list', 'stadiumE-list', 'stadiumF-list'];
+        const STORAGE_KEY = 'kanban_data';
+
+        function renderBoard() {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            if (!stored) return;
+            const data = JSON.parse(stored);
+            
+            lists.forEach(id => {
+                const container = document.getElementById(id);
+                if (!container) return;
+                const tasks = data[id] || [];
+                
+                container.innerHTML = '';
+                
+                tasks.forEach(text => {
+                    const card = document.createElement('div');
+                    if (id === 'wait-list') {
+                        card.className = "p-1.5 bg-white border border-slate-300 rounded shadow-sm font-bold text-sm text-center text-slate-800";
+                    } else {
+                        // スタジアム側：テキストカラーは親要素（Stadium X）の設定を引き継ぐ
+                        card.className = "match-text w-full font-bold text-[15px] leading-tight p-0.5";
+                    }
+                    card.innerText = text;
+                    container.appendChild(card);
+                });
+            });
+        }
+
+        window.onload = () => {
+            renderBoard();
+            setInterval(renderBoard, 1000);
+        };
+    </script>
+</body>
+</html>
