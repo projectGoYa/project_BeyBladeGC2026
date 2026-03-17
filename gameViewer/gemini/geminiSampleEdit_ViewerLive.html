@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BeyBlade Viewer - Colored Stadiums</title>
+    <title>BeyBlade Viewer - Balanced Stadium Colors Gradient</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .match-text {
@@ -17,12 +17,25 @@
             border: 1px solid #fcd34d;
             color: #92400e;
         }
+
+        /* アニメーション付きグラデーション背景の定義 */
+        @keyframes gradient-bg {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .animate-gradient-slow {
+            background-size: 200% 200%;
+            animation: gradient-bg 15s ease infinite; /* バランス調整のため時間を少し長く */
+        }
     </style>
 </head>
 <body class="h-screen flex flex-col bg-slate-100 overflow-hidden">
 
-    <header class="bg-gradient-to-r from-red-500 via-orange-400 to-yellow-300 text-white p-1.5 flex justify-center items-center shadow-md shrink-0">
-        <h1 class="text-xl font-black tracking-tighter text-white drop-shadow-sm">BEYBLADE GRAND CHAMPIONS 2026</h1>
+    <header class="bg-gradient-to-r from-red-600 via-orange-500 via-purple-600 via-pink-500 via-blue-600 to-green-600 animate-gradient-slow p-2.5 flex justify-center items-center shadow-lg shrink-0 border-b border-white/10">
+        <h1 class="text-2xl font-black tracking-tighter text-white drop-shadow-md uppercase scale-105">
+            BEYBLADE GRAND CHAMPIONS 2026
+        </h1>
     </header>
 
     <div class="flex flex-1 overflow-hidden">
@@ -40,7 +53,7 @@
                 <span class="text-slate-800 text-sm font-bold uppercase tracking-widest">Live Stream Preview</span>
             </div>
 
-            <div class="h-32 bg-slate-200 grid grid-cols-6 gap-1 p-1 shadow-inner shrink-0">
+            <div class="h-32 bg-slate-200 grid grid-cols-6 gap-1 p-1 shadow-inner shrink-0 border-t border-slate-300">
                 <div class="bg-red-50 rounded flex flex-col border border-red-300 overflow-hidden shadow-sm text-center">
                     <div class="bg-red-500 text-white font-bold py-0.5 text-[9px] uppercase tracking-wider">Stadium A</div>
                     <div id="stadiumA-list" class="flex-1 flex flex-col items-center justify-center px-0.5 overflow-hidden text-red-950"></div>
