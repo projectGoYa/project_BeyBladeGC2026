@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BeyBlade Viewer - Balanced Stadium Colors Gradient</title>
+    <title>BeyBlade Viewer - Compact Warm Gradient</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .match-text {
@@ -26,14 +26,14 @@
         }
         .animate-gradient-slow {
             background-size: 200% 200%;
-            animation: gradient-bg 15s ease infinite; /* バランス調整のため時間を少し長く */
+            animation: gradient-bg 12s ease infinite;
         }
     </style>
 </head>
 <body class="h-screen flex flex-col bg-slate-100 overflow-hidden">
 
-    <header class="bg-gradient-to-r from-red-600 via-orange-500 via-purple-600 via-pink-500 via-blue-600 to-green-600 animate-gradient-slow p-2.5 flex justify-center items-center shadow-lg shrink-0 border-b border-white/10">
-        <h1 class="text-2xl font-black tracking-tighter text-white drop-shadow-md uppercase scale-105">
+    <header class="bg-gradient-to-r from-red-600 via-orange-500 via-amber-400 via-pink-500 via-purple-600 to-red-600 animate-gradient-slow p-1 flex justify-center items-center shadow-md shrink-0 border-b border-white/10">
+        <h1 class="text-base font-black tracking-tighter text-white drop-shadow-md uppercase">
             BEYBLADE GRAND CHAMPIONS 2026
         </h1>
     </header>
@@ -49,7 +49,7 @@
         </aside>
 
         <main class="flex-1 flex flex-col min-w-0">
-            <div class="flex-1 bg-black flex items-center justify-center text-white relative">
+            <div class="flex-1 bg-black flex items-center justify-center text-white relative border-l border-slate-400">
                 <span class="text-slate-800 text-sm font-bold uppercase tracking-widest">Live Stream Preview</span>
             </div>
 
